@@ -1,0 +1,61 @@
+services:
+  apache_airbnb:
+    build: apache
+    container_name: ${APACHE_CONTAINER:-apache_airbnb}
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    volumes:
+      - ./www:/var/www/html
+      - ./apache/custom-php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+    environment:
+      - PHP_ERROR_REPORTING=${PHP_ERROR_REPORTING:-E_ALL}
+      - PHP_DISPLAY_ERRORS=${PHP_DISPLAY_ERRORS:-On}
+    networks:
+      - app_network
+    depends_on:
+      mariadb_airbnb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    mem_limit: 512m
+    mem_reservation: 256m
+    cpus: 2.0
+
+  mariadb_airbnb:
+    image: mariadb:11.3
+    container_name: ${MARIADB_CONTAINER:-mariadb_airbnb}
+    restart: unless-stopped
+    ports:
+      - "3308:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-app_db}
+      - MYSQL_USER=${MYSQL_USER:-app_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-app_password}
+      - MYSQL_ROOT_HOST=${MYSQL_ROOT_HOST:-%}
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+    mem_limit: 1g
+    mem_reservation: 512m
+    cpus: 2.0
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql:
