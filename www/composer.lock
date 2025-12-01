@@ -1,0 +1,436 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "298da462c02581d5bae4c3ca185916e0",
+    "packages": [
+        {
+            "name": "julienlinard/auth-php",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-auth.git",
+                "reference": "9a0aa3a6b5a43e85c54ddae4a4ac23eb992c75e9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-auth/zipball/9a0aa3a6b5a43e85c54ddae4a4ac23eb992c75e9",
+                "reference": "9a0aa3a6b5a43e85c54ddae4a4ac23eb992c75e9",
+                "shasum": ""
+            },
+            "require": {
+                "julienlinard/core-php": "^1.0",
+                "julienlinard/doctrine-php": "^1.0",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^12.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Auth\\": "src/Auth/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Système d'authentification complet pour PHP avec gestion des utilisateurs, rôles, permissions et sécurité",
+            "homepage": "https://github.com/julien-lin/auth-php",
+            "keywords": [
+                "Authentication",
+                "auth",
+                "authorization",
+                "login",
+                "logout",
+                "middleware",
+                "permissions",
+                "php8",
+                "roles",
+                "security"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/auth-php/issues",
+                "source": "https://github.com/julien-lin/auth-php"
+            },
+            "time": "2025-11-30T09:59:08+00:00"
+        },
+        {
+            "name": "julienlinard/core-php",
+            "version": "1.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-core.git",
+                "reference": "ad55e5f5b76080a1759374bc9f7a0d9ca40fe3ac"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-core/zipball/ad55e5f5b76080a1759374bc9f7a0d9ca40fe3ac",
+                "reference": "ad55e5f5b76080a1759374bc9f7a0d9ca40fe3ac",
+                "shasum": ""
+            },
+            "require": {
+                "julienlinard/php-cache": "^1.0",
+                "julienlinard/php-dotenv": "^1.0",
+                "julienlinard/php-router": "^1.2.1",
+                "julienlinard/php-validator": "^1.0",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Core\\": "src/Core/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Framework MVC complet pour applications PHP avec Container DI, Controllers, Views, Forms, Session et plus",
+            "homepage": "https://github.com/julien-lin/core-php",
+            "keywords": [
+                "cache",
+                "caching",
+                "container",
+                "controller",
+                "dependency-injection",
+                "form",
+                "framework",
+                "mvc",
+                "php",
+                "php8",
+                "session",
+                "template",
+                "validation",
+                "view"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/core-php/issues",
+                "source": "https://github.com/julien-lin/core-php"
+            },
+            "time": "2025-11-26T19:16:33+00:00"
+        },
+        {
+            "name": "julienlinard/doctrine-php",
+            "version": "1.1.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-doctrine.git",
+                "reference": "1971f7bee6f09562a3b451f58697c9741cd7a405"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-doctrine/zipball/1971f7bee6f09562a3b451f58697c9741cd7a405",
+                "reference": "1971f7bee6f09562a3b451f58697c9741cd7a405",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo": "*",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^12.0"
+            },
+            "suggest": {
+                "symfony/console": "Optional: For structured CLI commands for migrations"
+            },
+            "bin": [
+                "bin/doctrine-migrate"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Doctrine\\": "src/Doctrine/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Modern ORM for PHP 8+ inspired by Doctrine, with Entity Manager, Repository Pattern, Query Builder and PHP 8 Attributes mapping",
+            "homepage": "https://github.com/julien-lin/doctrine-php",
+            "keywords": [
+                "attributes",
+                "database",
+                "doctrine",
+                "entity",
+                "mapping",
+                "orm",
+                "php8",
+                "query-builder",
+                "repository"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/doctrine-php/issues",
+                "source": "https://github.com/julien-lin/doctrine-php"
+            },
+            "time": "2025-11-30T14:36:56+00:00"
+        },
+        {
+            "name": "julienlinard/php-cache",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-cache.git",
+                "reference": "a8b29b6909f60baae612d1ebdefff6ff77a8476d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-cache/zipball/a8b29b6909f60baae612d1ebdefff6ff77a8476d",
+                "reference": "a8b29b6909f60baae612d1ebdefff6ff77a8476d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.5"
+            },
+            "suggest": {
+                "ext-memcached": "Pour utiliser le driver Memcached",
+                "ext-redis": "Pour utiliser le driver Redis"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Cache\\": "src/Cache/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Système de cache moderne et sécurisé pour PHP 8+ avec support de multiples drivers (File, Redis, Memcached, Array), tags, TTL et invalidation",
+            "homepage": "https://github.com/julien-lin/php-cache",
+            "keywords": [
+                "cache",
+                "caching",
+                "file-cache",
+                "memcached",
+                "performance",
+                "php",
+                "php8",
+                "redis",
+                "security",
+                "tags",
+                "ttl"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/php-cache/issues",
+                "source": "https://github.com/julien-lin/php-cache"
+            },
+            "time": "2025-11-24T09:02:47+00:00"
+        },
+        {
+            "name": "julienlinard/php-dotenv",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-dotenv.git",
+                "reference": "5b7d4aa5a88d9f117e9daf0c1d3a3f5bf5d487f4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-dotenv/zipball/5b7d4aa5a88d9f117e9daf0c1d3a3f5bf5d487f4",
+                "reference": "5b7d4aa5a88d9f117e9daf0c1d3a3f5bf5d487f4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Dotenv\\": "src/Dotenv/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Une librairie PHP simple et moderne pour charger les variables d'environnement depuis un fichier .env",
+            "homepage": "https://github.com/julien-lin/php-dotenv",
+            "keywords": [
+                "configuration",
+                "dotenv",
+                "env",
+                "environment",
+                "php8",
+                "variables"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/php-dotenv/issues",
+                "source": "https://github.com/julien-lin/php-dotenv"
+            },
+            "time": "2025-11-17T10:44:33+00:00"
+        },
+        {
+            "name": "julienlinard/php-router",
+            "version": "1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-router.git",
+                "reference": "9868c653b25bed44243830f53e9b4ef22297f86f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-router/zipball/9868c653b25bed44243830f53e9b4ef22297f86f",
+                "reference": "9868c653b25bed44243830f53e9b4ef22297f86f",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Router\\": "src/Router/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Un routeur PHP moderne et complet avec support des routes dynamiques, middlewares, groupes de routes et génération d'URL. Compatible PHP 8+ avec Attributes.",
+            "homepage": "https://github.com/julien-lin/php-router",
+            "keywords": [
+                "PSR-4",
+                "attributes",
+                "http",
+                "middleware",
+                "php",
+                "php8",
+                "router",
+                "routes",
+                "routing"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/php-router/issues",
+                "source": "https://github.com/julien-lin/php-router"
+            },
+            "time": "2025-11-29T15:16:55+00:00"
+        },
+        {
+            "name": "julienlinard/php-validator",
+            "version": "1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/julien-lin/php-validator.git",
+                "reference": "12f7293c7411edfad258bff14c2a62799c0d8a50"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/julien-lin/php-validator/zipball/12f7293c7411edfad258bff14c2a62799c0d8a50",
+                "reference": "12f7293c7411edfad258bff14c2a62799c0d8a50",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JulienLinard\\Validator\\": "src/Validator/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Linard",
+                    "email": "julien.linard.dev@gmail.com",
+                    "homepage": "https://github.com/julien-lin"
+                }
+            ],
+            "description": "Système de validation avancé pour PHP 8+ avec règles personnalisées, messages multilingues, validation conditionnelle et sanitization",
+            "homepage": "https://github.com/julien-lin/php-validator",
+            "keywords": [
+                "csrf",
+                "form-validation",
+                "multilingual",
+                "php",
+                "php8",
+                "rules",
+                "sanitization",
+                "validation",
+                "validator"
+            ],
+            "support": {
+                "issues": "https://github.com/julien-lin/php-validator/issues",
+                "source": "https://github.com/julien-lin/php-validator"
+            },
+            "time": "2025-11-26T20:37:29+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "^8.1"
+    },
+    "platform-dev": [],
+    "plugin-api-version": "2.6.0"
+}
