@@ -8,7 +8,8 @@
         "julienlinard/php-router": "^1.0",
         "julienlinard/php-validator": "^1.0",
         "julienlinard/doctrine-php": "^1.1",
-        "julienlinard/auth-php": "^1.0"
+        "julienlinard/auth-php": "^1.0",
+      "ext-pdo": "*"
     },
     "autoload": {
         "psr-4": {
