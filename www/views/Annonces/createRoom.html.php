@@ -53,23 +53,31 @@ $old = $old ?? [
             </div>
 
             <!-- Price per night -->
-            <div>
-                <label for="price_per_night" class="block text-sm font-medium text-gray-700 mb-2">Prix par nuit (€) <span class="text-red-500">*</span></label>
-                <input type="number" id="price_per_night" name="price_per_night" value="<?= htmlspecialchars($old['price_per_night'] ?? '') ?>"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($errors['price_per_night']) ? 'border-red-500' : '' ?>" required min="1" step="0.01">
-                <?php if (isset($errors['price_per_night'])): ?>
-                    <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['price_per_night']) ?></p>
-                <?php endif; ?>
-            </div>
+            <div class="flex justify-center space-x-10">
+                <div class="w-full">
+                    <label for="price_per_night" class="block text-sm font-medium text-gray-700 mb-2">Prix par nuit (€)
+                        <span class="text-red-500">*</span></label>
+                    <input type="number" id="price_per_night" name="price_per_night"
+                           value="<?= htmlspecialchars($old['price_per_night'] ?? '') ?>"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($errors['price_per_night']) ? 'border-red-500' : '' ?>"
+                           required min="1" step="1">
+                    <?php if (isset($errors['price_per_night'])): ?>
+                        <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['price_per_night']) ?></p>
+                    <?php endif; ?>
+                </div>
 
-            <!-- Number of bed -->
-            <div>
-                <label for="number_of_bed" class="block text-sm font-medium text-gray-700 mb-2">Nombre de lits <span class="text-red-500">*</span></label>
-                <input type="number" id="number_of_bed" name="number_of_bed" value="<?= htmlspecialchars($old['number_of_bed'] ?? '') ?>"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($errors['number_of_bed']) ? 'border-red-500' : '' ?>" required min="1" max="20">
-                <?php if (isset($errors['number_of_bed'])): ?>
-                    <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['number_of_bed']) ?></p>
-                <?php endif; ?>
+                <!-- Number of bed -->
+                <div class="w-full">
+                    <label for="number_of_bed" class="block text-sm font-medium text-gray-700 mb-2">Nombre de lits <span
+                                class="text-red-500">*</span></label>
+                    <input type="number" id="number_of_bed" name="number_of_bed"
+                           value="<?= htmlspecialchars($old['number_of_bed'] ?? '') ?>"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent <?= isset($errors['number_of_bed']) ? 'border-red-500' : '' ?>"
+                           required min="1"">
+                    <?php if (isset($errors['number_of_bed'])): ?>
+                        <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['number_of_bed']) ?></p>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- Description -->
@@ -81,20 +89,21 @@ $old = $old ?? [
 
             <!-- Media Upload -->
             <div>
-                <label for="media" class="block text-sm font-medium text-gray-700 mb-2">Images (optionnel)</label>
+                <label for="media" class="block text-sm font-medium text-gray-700 mb-2">Image de couverture (optionnel)</label>
                 <div class="space-y-4">
                     <div class="flex items-center justify-center w-full">
-                        <label for="media_path" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <label for="media" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                 <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
                                 <p class="mb-2 text-sm text-gray-500">
-                                    <span class="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
+                                    <span class="font-semibold">Cliquez pour uploader</span>
                                 </p>
-                                <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP jusqu'à 10MB (max 10 fichiers)</p>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP (max 10MB)</p>
                             </div>
-                            <input type="file" id="media_path" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="previewImages(this)">
+
+                            <input type="file" id="media" name="media" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" onchange="previewImages(this)">
                         </label>
                     </div>
                     <div id="imagePreview" class="grid grid-cols-2 md:grid-cols-4 gap-4 hidden"></div>

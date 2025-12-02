@@ -61,7 +61,7 @@ class AnnonceController extends Controller
             return $this->redirect('/login');
         }
 
-        // Récupération des champs classiques
+        // 1. Récupération des données du formulaire
         $title = trim($request->getPost('title', '') ?? '');
         $description = trim($request->getPost('description', '') ?? '');
         $country = trim($request->getPost('country', '') ?? '');
@@ -69,7 +69,7 @@ class AnnonceController extends Controller
         $price_per_night = (int)$request->getPost('price_per_night', 0);
         $number_of_bed = (int)$request->getPost('number_of_bed', 0);
 
-        // --- VALIDATION DES CHAMPS ---
+        // 2. Validation (Votre logique existante)
         $errors = [];
         if (empty($title)) $errors['title'] = 'Le titre est requis';
         if (empty($country)) $errors['country'] = 'Le pays est requis';
@@ -77,48 +77,45 @@ class AnnonceController extends Controller
         if ($price_per_night <= 0) $errors['price_per_night'] = 'Le prix doit être positif';
         if ($number_of_bed <= 0) $errors['number_of_bed'] = 'Le nombre de lits est requis';
 
-        // --- GESTION DE L'IMAGE ---
         $imagePath = null;
 
-        // On vérifie si un fichier a été envoyé dans le tableau 'media' à l'index 0
-        if (!empty($_FILES['media']['name'][0])) {
-            $tmpName = $_FILES['media']['tmp_name'][0];
-            $error = $_FILES['media']['error'][0];
-            $fileName = $_FILES['media']['name'][0];
-            $size = $_FILES['media']['size'][0];
+        // On vérifie si un fichier 'media' a été envoyé sans erreur
+        if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
 
-            if ($error === UPLOAD_ERR_OK) {
-                // 1. Validation de l'extension
-                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-                $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            $file = $_FILES['media'];
+            $fileName = $file['name'];
+            $tmpName  = $file['tmp_name'];
+            $size     = $file['size'];
 
-                if (!in_array($extension, $allowedExtensions)) {
-                    $errors['general'] = "Format d'image non supporté (jpg, png, webp uniquement).";
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+            // 1. Vérifications
+            if (!in_array($extension, $allowedExtensions)) {
+                $errors['general'] = "Format d'image non supporté.";
+            }
+            elseif ($size > 10 * 1024 * 1024) { // 10 Mo
+                $errors['general'] = "L'image est trop lourde (max 10Mo).";
+            }
+            else {
+                // 2. Upload
+                $uploadDir = __DIR__ . '/../../public/uploads/rooms/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
                 }
-                // 2. Validation de la taille (ex: 5Mo)
-                elseif ($size > 5 * 1024 * 1024) {
-                    $errors['general'] = "L'image est trop lourde (max 5Mo).";
-                }
-                else {
-                    // 3. Upload
-                    $uploadDir = __DIR__ . '/../../public/uploads/rooms/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
 
-                    $newFilename = uniqid('room_', true) . '.' . $extension;
+                $newFilename = uniqid('room_', true) . '.' . $extension;
 
-                    if (move_uploaded_file($tmpName, $uploadDir . $newFilename)) {
-                        // Chemin à stocker en BDD
-                        $imagePath = 'uploads/rooms/' . $newFilename;
-                    } else {
-                        $errors['general'] = "Erreur lors de la sauvegarde de l'image.";
-                    }
+                if (move_uploaded_file($tmpName, $uploadDir . $newFilename)) {
+                    $imagePath = 'uploads/rooms/' . $newFilename;
+                } else {
+                    $errors['general'] = "Erreur lors de la sauvegarde de l'image.";
                 }
             }
         }
 
-        // S'il y a des erreurs, on renvoie la vue
+
+        // S'il y a des erreurs, on réaffiche le formulaire
         if (!empty($errors)) {
             Session::flash('error', 'Veuillez corriger les erreurs.');
             return $this->view('Annonces/createRoom', [
@@ -148,11 +145,11 @@ class AnnonceController extends Controller
             $room->updated_at = new \DateTime();
             $room->is_reserved = false;
 
-            // On assigne l'image
-            $room->media_path = $imagePath; //
+            // Assignation de l'image
+            $room->media_path = $imagePath; // Sera null si pas d'image ou erreur
 
             $this->em->persist($room);
-            $this->em->flush(); // Important : Flush ici pour avoir l'ID de la Room
+            $this->em->flush(); // Nécessaire pour avoir l'ID de la room
 
             // Création de la liaison User_Room
             $userEntity = $this->em->createRepository(UserRepository::class, User::class)->find($user->id);
@@ -168,8 +165,7 @@ class AnnonceController extends Controller
             return $this->redirect('/mesAnnonces');
 
         } catch (\Exception $e) {
-            // En production, logguez $e->getMessage()
-            Session::flash('error', 'Une erreur est survenue : ' . $e->getMessage());
+            Session::flash('error', 'Erreur système : ' . $e->getMessage());
             return $this->redirect('/room/create');
         }
     }
