@@ -35,6 +35,7 @@
                     >
                         Se connecter
                     </button>
+                </form>
                 <form action="/register" method="GET">
                     <?= \JulienLinard\Core\Middleware\CsrfMiddleware::field() ?>
                     <button

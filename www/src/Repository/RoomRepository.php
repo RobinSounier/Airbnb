@@ -15,13 +15,11 @@ class RoomRepository extends EntityRepository
 
     public function __construct(EntityManager $em)
     {
-        // On passe la Connection et MetadataReader au parent
         parent::__construct(
             $em->getConnection(),
             $em->getMetadataReader(),
             Room::class
         );
-
         $this->em = $em;
     }
 
@@ -33,12 +31,22 @@ class RoomRepository extends EntityRepository
         $qb = $this->em->createQueryBuilder();
 
         return $qb->select('*')
-        ->from(Room::class, 'r')
-        ->whereSubquery('r.id', 'IN', function($subQb) use ($userId) {
-            $subQb->from(User_Room::class, 'ur')
-            ->select('ur.room_id')
-            ->where('ur.user_id = ?', $userId);
-        })
+            ->from(Room::class, 'r')
+            ->whereSubquery('r.id', 'IN', function($subQb) use ($userId) {
+                $subQb->from(User_Room::class, 'ur')
+                    ->select('ur.room_id')
+                    ->where('ur.user_id = ?', $userId);
+            })
+            ->getResult();
+    }
+
+    // --- AJOUTEZ CETTE MÉTHODE ---
+    public function findAllRooms(): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('*')
+            ->from(Room::class, 'r')
+            ->orderBy('r.created_at', 'DESC') // On affiche les plus récentes en premier
             ->getResult();
     }
 }

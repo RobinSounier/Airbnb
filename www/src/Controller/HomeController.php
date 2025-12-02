@@ -15,7 +15,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Role;
+use App\Entity\Room;
 use App\Repository\RoleRepository;
+use App\Repository\RoomRepository;
 use JulienLinard\Core\Controller\Controller;
 use JulienLinard\Core\Middleware\CsrfMiddleware;
 use JulienLinard\Router\Attributes\Route;
@@ -46,9 +48,14 @@ class HomeController extends Controller
     #[Route(path: '/', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
+        // Récupération de toutes les annonces
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        $rooms = $roomRepo->findAllRooms(); // Utilisation de notre nouvelle méthode
+
         return $this->view('home/index', [
-            'title' => 'Airbnb',
+            'title' => 'Airbnb - Locations de vacances',
             'auth' => $this->auth,
+            'rooms' => $rooms // On passe les données à la vue
         ]);
     }
 
