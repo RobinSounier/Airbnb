@@ -49,4 +49,9 @@ class RoomRepository extends EntityRepository
             ->orderBy('r.created_at', 'DESC') // On affiche les plus récentes en premier
             ->getResult();
     }
+
+    public function findRoomById(int $id): ?Room
+    {
+        return $this->find($id);
+    }
 }

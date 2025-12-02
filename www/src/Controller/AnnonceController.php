@@ -170,7 +170,167 @@ class AnnonceController extends Controller
         }
     }
 
+// --- AJOUTER DANS AnnonceController ---
 
+    #[Route(path: "/room/edit", name: "app_edit_room_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
+    public function editForm(Request $request): Response
+    {
+        $user = $this->auth->user();
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        // 1. Récupérer ID
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+
+// 1. Récupérer l’ID dans l’URL
+        $id = (int) $request->getQueryParam('id', 0);
+
+// Débogage si besoin
+
+
+    if ($id != $user->id) {
+        $isOwner = false;
+    } else {
+        $isOwner = true;
+    }
+
+        if ($id === 0) {
+            Session::flash('error', 'ID invalide.');
+            return $this->redirect('/mesAnnonces');
+        }
+
+        if ($id === 0) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/mesAnnonces');
+        }
+
+        // 2. Charger l'annonce
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        $room = $roomRepo->find($id);
+
+        if (!$room) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/mesAnnonces');
+        }
+
+        // 3. Vérifier propriétaire
+
+        if (!$isOwner) {
+            Session::flash('error', 'Accès refusé.');
+            return $this->redirect('/mesAnnonces');
+        }
+
+        // 4. Rendre la vue
+        return $this->view('Annonces/editRoom', [
+            'room' => $room,
+            'errors' => []
+        ]);
+    }
+
+
+    #[Route(path: "/room/edit", name: "app_edit_room_process", methods: ["POST"], middleware: [AuthMiddleware::class])]
+    public function update(Request $request): Response
+    {
+        // 1. Vérifier que l'utilisateur est connecté
+        $user = $this->auth->user();
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        // 2. Récupérer l'ID de l'annonce
+        $id = (int) $request->getPost('id', 0);
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        /** @var Room|null $room */
+        $room = $roomRepo->find($id);
+
+        // 3. Vérifier que l'annonce existe
+        if (!$room) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/mesAnnonces');
+        }
+
+        // (Optionnel mais recommandé) Vérifier que l'annonce appartient bien à l'utilisateur
+        // ... votre logique de vérification ici ...
+
+        // 4. Récupérer les nouvelles données du formulaire
+        $title = trim($request->getPost('title', '') ?? '');
+        $description = trim($request->getPost('description', '') ?? '');
+        $country = trim($request->getPost('country', '') ?? '');
+        $city = trim($request->getPost('city', '') ?? '');
+        $price_per_night = (int)$request->getPost('price_per_night', 0);
+        $number_of_bed = (int)$request->getPost('number_of_bed', 0);
+
+        // Validation simple
+        if (empty($title) || $price_per_night <= 0) {
+            Session::flash('error', 'Titre et prix sont obligatoires.');
+            return $this->redirect('/room/edit?id=' . $id);
+        }
+
+        try {
+            // 5. Mise à jour des informations texte
+            $room->title = $title;
+            $room->description = $description;
+            $room->country = $country;
+            $room->city = $city;
+            $room->price_per_night = $price_per_night;
+            $room->number_of_bed = $number_of_bed;
+            $room->updated_at = new \DateTime();
+
+            // 6. GESTION INTELLIGENTE DE L'IMAGE
+            // On ne fait quelque chose que si un nouveau fichier est envoyé
+            if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
+
+                $file = $_FILES['media'];
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+                $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+                // Validation du format
+                if (in_array($extension, $allowedExtensions)) {
+                    $uploadDir = __DIR__ . '/../../public/uploads/rooms/';
+
+                    // Créer le dossier s'il n'existe pas
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+
+                    // Générer un nom unique
+                    $newFilename = uniqid('room_', true) . '.' . $extension;
+
+                    // Tenter l'upload
+                    if (move_uploaded_file($file['tmp_name'], $uploadDir . $newFilename)) {
+
+                        // === SUPPRESSION DE L'ANCIENNE IMAGE ===
+                        // C'est ici qu'on nettoie le serveur
+                        if ($room->media_path) {
+                            $oldFilePath = __DIR__ . '/../../public/' . $room->media_path;
+                            if (file_exists($oldFilePath) && is_file($oldFilePath)) {
+                                @unlink($oldFilePath); // @ pour éviter une erreur si le fichier est déjà parti
+                            }
+                        }
+
+                        // Mise à jour du chemin en base de données
+                        $room->media_path = 'uploads/rooms/' . $newFilename;
+                    }
+                } else {
+                    Session::flash('error', 'Format d\'image non supporté.');
+                    return $this->redirect('/room/edit?id=' . $id);
+                }
+            }
+
+            // 7. Sauvegarde finale
+            // Pas besoin de persist($room) car l'objet est déjà suivi ("managed") par l'EntityManager
+            $this->em->persist($room);
+            $this->em->flush();
+
+            Session::flash('success', 'Annonce modifiée avec succès !');
+            return $this->redirect('/mesAnnonces');
+
+        } catch (\Exception $e) {
+            Session::flash('error', 'Erreur lors de la modification : ' . $e->getMessage());
+            return $this->redirect('/room/edit?id=' . $id);
+        }
+    }
 
 
 
