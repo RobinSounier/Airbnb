@@ -9,7 +9,8 @@
         "julienlinard/php-validator": "^1.0",
         "julienlinard/doctrine-php": "^1.1",
         "julienlinard/auth-php": "^1.0",
-      "ext-pdo": "*"
+      "ext-pdo": "*",
+      "ext-fileinfo": "*"
     },
     "autoload": {
         "psr-4": {
