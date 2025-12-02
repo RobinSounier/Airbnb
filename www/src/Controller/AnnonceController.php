@@ -9,6 +9,8 @@ use App\Entity\User;
 use App\Entity\User_Room;
 use App\Repository\RoomRepository;
 use App\Repository\UserRepository;
+use App\Service\FileUploadService;
+use JulienLinard\Auth\AuthManager;
 use JulienLinard\Auth\Middleware\AuthMiddleware;
 use JulienLinard\Core\Controller\Controller;
 use JulienLinard\Core\Session\Session;
@@ -16,13 +18,16 @@ use JulienLinard\Doctrine\EntityManager;
 use JulienLinard\Router\Attributes\Route;
 use JulienLinard\Router\Request;
 use JulienLinard\Router\Response;
-use PDO;
+
+
 
 class AnnonceController extends Controller
 {
     public function __construct(
+        private AuthManager $auth,
         private EntityManager $em,
-        private \JulienLinard\Auth\AuthManager $auth
+        private Validator $validator,
+        private FileUploadService $fileUpload
     ) {}
 
     #[Route(path: '/mesAnnonces', name: 'mesAnnonces', methods: ['GET'], middleware: [AuthMiddleware::class])]
@@ -133,15 +138,61 @@ class AnnonceController extends Controller
 
             // 3️⃣ Crée la relation User_Room
             $userRoom = new User_Room();
-            $userRoom->user = $userEntity;  // entité User
-            $userRoom->room = $room;        // entité Room persistée
+            $userRoom->user = $userEntity;
+            $userRoom->room = $room;
+
             $this->em->persist($userRoom);
+            $this->em->flush();
 
 
             $userEntity->userRooms[] = $userRoom;
             $room->userRooms[] = $userRoom;
 
             $this->em->flush();
+
+            $uploadResult = $this->handleMediaUpload($request);
+            $uploadErrors = [];
+            if ($uploadResult->hasUploaded()) {
+                $uploadedFiles = $uploadResult->getUploaded();
+
+                foreach ($uploadedFiles as $mediaData) {
+                    try {
+                        $room = new Room();
+                        $room->title = $title;
+                        $room->description = $description;
+                        $room->country = $country;
+                        $room->city = $city;
+                        $room->price_per_night = $price_per_night;
+                        $room->number_of_bed = $number_of_bed;
+                        $room->created_at = new \DateTime();
+                        $room->updated_at = new \DateTime();
+                        $room->is_reserved = false;
+                        $room->media_path = $mediaData['filename'];
+
+
+                        $this->em->persist($room);
+                        $this->em->flush();
+
+                    } catch (\Exception $e) {
+                        $uploadErrors[] = 'Erreur lors de l\'enregistrement de ' . $mediaData['original_filename'] . ': ' . $e->getMessage();
+                        // Supprimer le fichier uploadé si l'enregistrement échoue
+                        $this->fileUpload->delete($mediaData['filename']);
+                    }
+                }
+
+
+            }
+
+            // Afficher les erreurs d'upload s'il y en a
+            if ($uploadResult->hasErrors()) {
+                $uploadErrors[] = $uploadResult->getErrorsAsString();
+            }
+
+            // Invalider le cache pour forcer le rechargement des données
+            $queryCache = $this->em->getQueryCache();
+            if ($queryCache !== null) {
+                $queryCache->invalidateEntity(Todo::class, $todo->id);
+            }
 
             Session::flash('success', 'Le bien a été ajouté avec succès !');
             return $this->redirect('/mesAnnonces');
