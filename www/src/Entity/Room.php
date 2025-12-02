@@ -46,6 +46,12 @@ class Room
     #[Column(type: 'bool', nullable: false, default: 'false')]
     public bool $is_reserved = false;
 
+    #[OneToMany(targetEntity: User_Room::class, mappedBy: 'room', cascade: ['persist', 'remove'])]
+    public array $userRooms = [];
+
+    #[Column(type: "string", length: 255, nullable: true)]
+    public ?string $media_path = null;
+
     #[OneToMany(targetEntity: Reservation::class, mappedBy: 'room', cascade: ['persist', 'remove'])]
     public array $reservations = [];
 }

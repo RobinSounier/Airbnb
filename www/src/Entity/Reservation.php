@@ -16,8 +16,8 @@ class Reservation
 {
 
     #[Id]
-    #[Column(type: 'integer', autoincrement: true)]
-    public ?int $id;
+    #[Column(type: 'int', autoIncrement: true)]
+    public ?int $id = null;
 
     #[ManyToOne(targetEntity: User::class, inversedBy: 'reservations')]
     public ?User $guest = null;

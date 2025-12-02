@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
+use App\Controller\AnnonceController;
 use JulienLinard\Core\Application;
 use JulienLinard\Core\Middleware\CsrfMiddleware;
 use JulienLinard\Validator\Validator as PhpValidator;
@@ -177,6 +178,7 @@ EventListenerService::register($events, $logger);
 // Les routes sont définies directement dans les contrôleurs avec des attributs #[Route]
 // Le router scanne les contrôleurs et enregistre automatiquement les routes
 $router->registerRoutes(HomeController::class);
+$router->registerRoutes(AnnonceController::class);
 
 // Démarrer l'application
 $app->start();

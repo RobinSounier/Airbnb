@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Entity;
@@ -13,10 +12,9 @@ class User_Room
 {
     #[Id]
     #[ManyToOne(targetEntity: User::class, joinColumn: 'user_id')]
-    private ?User $user = null;
+    public ?User $user = null;
 
     #[Id]
     #[ManyToOne(targetEntity: Room::class, joinColumn: 'room_id')]
-    private ?Room $room = null;
+    public ?Room $room = null;
 }
-

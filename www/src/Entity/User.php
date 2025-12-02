@@ -39,10 +39,15 @@ class User implements UserInterface
     public ?\DateTime $created_at = null;
 
     #[ManyToOne(targetEntity: Role::class, joinColumn: 'roles_id')]
-    public ?string $roleId = '1';
+    public ?Role $roles_id = null;
+
+    #[OneToMany(targetEntity: User_Room::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    public array $userRooms = [];
+
 
     #[OneToMany(targetEntity: Reservation::class, mappedBy: 'guest', cascade: ['persist', 'remove'])]
     public array $reservations = [];
+    public \DateTime $updated_at;
 
     public function getAuthRoles(): array|string
     {
@@ -63,4 +68,6 @@ class User implements UserInterface
             default => []
         };
     }
+
+
 }
