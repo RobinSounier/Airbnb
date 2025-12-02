@@ -69,13 +69,8 @@
                                     Annonce créée aujourd'hui
                                     <?php endif; ?>
                                 </span>
-                                <form method="GET" action="/editRoom/ <?= $this->room->id ?>">
-                                    <?= \JulienLinard\Core\Middleware\CsrfMiddleware::field() ?>
-                                    <button type="submit"
-                                            class="text-[#FF5A5F] text-sm font-semibold hover:underline bg-transparent border-0 p-0 cursor-pointer">
-                                        Modifier
-                                    </button>
-                                </form>
+                                <?php $id = is_array($room) ? $room['id'] : $room->id; ?>
+                                <a href="/room/edit?id=<?= $id ?>" class="text-[#FF5A5F] text-sm font-semibold hover:underline">Modifier</a>
                             </div>
                         </div>
                     </div>
