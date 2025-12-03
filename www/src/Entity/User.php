@@ -39,8 +39,11 @@ class User implements UserInterface
     #[Column(type: 'datetime', nullable: true)]
     public ?\DateTime $created_at = null;
 
-    #[ManyToOne(targetEntity: Role::class, joinColumn: 'roles_id')]
-    public ?Role $role = null; // C'est cette propriété qui est référencée par 'mappedBy' dans Role.php
+    #[Column(type: 'datetime', nullable: true)]
+    public ?\DateTime $updated_at = null;
+
+    #[Column(type: 'string', length: 50, nullable: false, default: 'user')]
+    public string $role = 'user';
 
     #[OneToMany(targetEntity: User_Room::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     public array $userRooms = [];
@@ -48,23 +51,21 @@ class User implements UserInterface
 
     #[OneToMany(targetEntity: Reservation::class, mappedBy: 'guest', cascade: ['persist', 'remove'])]
     public array $reservations = [];
-    public \DateTime $updated_at;
+
+
 
     public function getAuthRoles(): array|string
-{
-    // On utilise $this->role (l'objet)
-    // On retourne le nom du rôle ou 'user' par défaut
-    return $this->role ? $this->role->name : 'user';
-}
+    {
+        // Utilise directement la propriété $role
+        return $this->role;
+    }
 
     public function getAuthPermissions(): array
     {
-        // On vérifie l'ID via l'objet role
-        $roleId = $this->role ? $this->role->id : 1;
-
-        return match ($roleId) {
-            2 => ['edit-posts', 'delete-posts', 'create-posts'],
-            1 => ['view-posts'],
+        // Utilise directement la propriété $role pour déterminer les permissions
+        return match ($this->role) {
+            'hote' => ['edit-posts', 'delete-posts', 'create-posts'],
+            'user' => ['view-posts'],
             default => []
         };
     }

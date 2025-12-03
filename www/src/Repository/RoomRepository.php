@@ -50,8 +50,18 @@ class RoomRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findRoomById(int $id): ?Room
+    public function isRoomOwnedByUser(int $roomId, int $userId): bool
     {
-        return $this->find($id);
+        $qb = $this->em->createQueryBuilder('ur')
+            ->select('COUNT(ur.id)')
+            ->where('ur.room = :roomId')
+            ->andWhere('ur.user = :userId')
+            ->setParameter('roomID', $roomId)
+            ->setParameter('userId', $userId);
+
+        $result = $qb->getResult();
+
+        return $count > 0;
     }
+
 }

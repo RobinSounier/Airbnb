@@ -37,19 +37,16 @@
             <?php else: ?>
                 <?php
                 $user = $auth->user();
-                // On vérifie l'ID du rôle.
-                // Sécurité : on vérifie si roles_id existe, sinon par défaut on considère user (1)
-                $roleId = ($user->role && $user->role->id) ? $user->role->id : 1;
+                // Utilisation du nouveau modèle : $user->role est une chaîne ('user' ou 'hote'). Par défaut 'user'.
+                $currentRole = $user->role ?? 'user';
                 ?>
 
-                <?php if ($roleId === 2): ?>
-
+                <?php if ($currentRole === 'hote'): ?>
                     <a href="/mesAnnonces" class="bg-gray-100 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 transition font-medium text-sm">
                         Mes annonces
                     </a>
 
                 <?php else: ?>
-
                     <a href="/room/create" class="bg-gray-100 text-gray-800 px-4 py-2 rounded-full hover:bg-gray-200 transition font-medium text-sm">
                         Devenir hôte
                     </a>

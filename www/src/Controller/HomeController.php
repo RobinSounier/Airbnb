@@ -122,15 +122,13 @@ class HomeController extends Controller
 
         // Créer l'utilisateur
         try {
-            $roleRepo = $this->em->createRepository(RoleRepository::class,Role::class);
-            $defaultRole = $roleRepo->find(1);
 
             $user = new User();
             $user->email = $email;
             $user->password = password_hash($password, PASSWORD_BCRYPT);
             $user->first_name = $first_name;
             $user->last_name = $last_name;
-            $user->roles_id = $defaultRole; // Rôle par défaut
+            $user->role = 'user'; // Rôle par défaut
             $user->created_at = new \DateTime();
 
             $this->em->persist($user);
