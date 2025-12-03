@@ -6,7 +6,7 @@ namespace App\Repository;
 
 use JulienLinard\Doctrine\Repository\EntityRepository;
 
-class UserRoom extends EntityRepository
+class User_RoomRepository extends EntityRepository
 {
 
 }
