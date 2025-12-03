@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-class UploadResult
+class UploadService
 {
     private bool $success;
     private ?array $data = null;
