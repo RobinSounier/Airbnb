@@ -38,10 +38,10 @@ class Room
     public int $number_of_bed = 1;
 
     #[Column(type: 'datetime', nullable: true, default: 'CURRENT_TIMESTAMP')]
-    public ?\DateTime $created_at;
+    public ?\DateTime $created_at = null;
 
     #[Column(type: 'datetime', nullable: true, default: 'CURRENT_TIMESTAMP')]
-    public ?\DateTime $updated_at;
+    public ?\DateTime $updated_at = null;
 
     #[Column(type: 'bool', nullable: false, default: 'false')]
     public bool $is_reserved = false;

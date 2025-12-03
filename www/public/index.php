@@ -18,6 +18,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Controller\AnnonceController;
+use App\Controller\ReservationController;
 use JulienLinard\Core\Application;
 use JulienLinard\Core\Middleware\CsrfMiddleware;
 use JulienLinard\Validator\Validator as PhpValidator;
@@ -179,6 +180,7 @@ EventListenerService::register($events, $logger);
 // Le router scanne les contrôleurs et enregistre automatiquement les routes
 $router->registerRoutes(HomeController::class);
 $router->registerRoutes(AnnonceController::class);
+$router->registerRoutes(ReservationController::class);
 
 // Démarrer l'application
 $app->start();

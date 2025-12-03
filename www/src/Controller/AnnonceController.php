@@ -14,6 +14,7 @@ use App\Repository\RoleRepository; //
 use App\Service\FileUploadService;
 use JulienLinard\Auth\AuthManager;
 use JulienLinard\Auth\Middleware\AuthMiddleware;
+use JulienLinard\Auth\Middleware\RoleMiddleware;
 use JulienLinard\Core\Controller\Controller;
 use JulienLinard\Core\Session\Session;
 use JulienLinard\Doctrine\EntityManager;
@@ -29,7 +30,7 @@ class AnnonceController extends Controller
         private FileUploadService $fileUploadService
     ) {}
 
-    #[Route(path: '/mesAnnonces', name: 'mesAnnonces', methods: ['GET'], middleware: [AuthMiddleware::class])]
+    #[Route(path: '/mesAnnonces', name: 'mesAnnonces', methods: ['GET'], middleware: [AuthMiddleware::class, new RoleMiddleware('hote', '/')])]
     public function mesAnnonces(): Response
     {
         $user = $this->auth->user();
@@ -108,7 +109,7 @@ class AnnonceController extends Controller
 
         // --- Si aucune erreur de validation, on procède à la sauvegarde ---
         try {
-            // 5. Création de la Room
+            // 1. Création et sauvegarde de la Room (pour obtenir l'ID)
             $room = new Room();
             $room->title = $title;
             $room->description = $description;
@@ -122,38 +123,43 @@ class AnnonceController extends Controller
             $room->media_path = $imagePath;
 
             $this->em->persist($room);
-            $this->em->flush();
+            $this->em->flush(); // FLUSH 1 : Indispensable pour l'ID Room
 
-            // On récupère l'entité User managée par l'EntityManager
+            // 2. Création de la liaison User_Room
             $userEntity = $this->em->createRepository(UserRepository::class, User::class)->find($user->id);
+            $this->em->persist($userEntity);
 
-            // 6. Création de la liaison User_Room
             $userRoom = new User_Room();
             $userRoom->user = $userEntity;
             $userRoom->room = $room;
-
             $this->em->persist($userRoom);
 
-            // 7. Changement de rôle si première annonce (si le rôle n'est pas déjà Hôte: 2)
-            if ($userEntity->role === null || $userEntity->role->id !== 2) {
-                $roleRepo = $this->em->createRepository(RoleRepository::class, Role::class);
-                $hostRole = $roleRepo->find(2);
+            // 3. Changement de rôle (Si pas déjà Hôte)
+            // Vérification de la propriété string
+            if ($userEntity->role !== 'hote') {
 
-                if ($hostRole) {
-                    $userEntity->role = $hostRole;
-                    $this->em->persist($userEntity);
-                }
+                $userEntity->role = 'hote'; // Mise à jour directe de la propriété string
+
+                // Force le statut 'dirty'
+                $userEntity->updated_at = new \DateTime();
+
+                // Note: $this->em->persist($userEntity) déjà appelé au début du bloc
             }
 
-            // 8. UN SEUL FLUSH pour tout sauvegarder
+            // 4. FLUSH FINAL (Enregistre User_Room et l'UPDATE User)
             $this->em->flush();
 
-            // Si votre AuthManager le permet, rafraîchir l'utilisateur en session pour que le rôle soit mis à jour immédiatement
-            if (method_exists($this->auth, 'refreshUser')) {
-                $this->auth->refreshUser($userEntity);
+            // 5. MISE A JOUR DE LA SESSION
+            if (method_exists($this->auth, 'login')) {
+                $this->auth->login($userEntity);
             }
 
-            Session::flash('success', 'Bien ajouté ! Vous êtes maintenant un Hôte.');
+            if ($userEntity->role !== 'hote') {
+                Session::flash('success', 'Annonce créée ! Vous êtes maintenant Hôte.');
+            } else {
+                Session::flash('success', 'Annonce créée !');
+            }
+
             return $this->redirect('/mesAnnonces');
 
         } catch (\Exception $e) {
@@ -199,6 +205,8 @@ class AnnonceController extends Controller
             return $this->redirect('/login');
         }
 
+
+
         $id = (int) $request->getPost('id', 0);
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
         /** @var Room|null $room */
@@ -206,6 +214,11 @@ class AnnonceController extends Controller
 
         if (!$room) {
             Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/mesAnnonces');
+        }
+
+        if ($room->id !== $user->id) {
+            Session::flash('error', 'Vous n’êtes pas autorisé à modifier cette annonce.');
             return $this->redirect('/mesAnnonces');
         }
 
@@ -255,5 +268,59 @@ class AnnonceController extends Controller
             Session::flash('error', 'Erreur lors de la modification : ' . $e->getMessage());
             return $this->redirect('/room/edit?id=' . $id);
         }
+    }
+
+    #[Route(path: "/room/{id}", name: "app_room_show", methods: ["GET"])]
+    public function show(Request $request): Response
+    {
+        // 1. Récupérer l'ID de la Room depuis l'URL (le chemin)
+        $id = (int) $request->getRouteParam('id', 0);
+
+        if ($id === 0) {
+            // Optionnel : rediriger ou afficher une erreur si l'ID est invalide
+            return $this->redirect('/');
+        }
+
+        // 2. Charger l'annonce depuis la base de données
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        $room = $roomRepo->find($id);
+
+        if (!$room) {
+            // Annonce introuvable : rediriger ou afficher une erreur 404
+            return $this->redirect('/');
+        }
+
+        // 3. Rendre la vue de l'annonce
+        return $this->view('Annonces/showRoom', [
+            'room' => $room,
+            'title' => $room->title . ' - Airbnb'
+        ]);
+    }
+
+    #[Route(path: "/room/{id}/delete", name: "app_room_delete", methods: ["Post"], middleware: [AuthMiddleware::class])]
+    public function delete(Request $request): Response
+    {
+        $id = (int) $request->getPost('id', 0);
+        if ($id === 0) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/');
+        }
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        $room = $roomRepo->find($id);
+        if (!$room) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/');
+        }
+
+        try{
+            $this->em->remove($room);
+            $this->em->flush();
+            Session::flash('success', 'Todo supprimé avec succès !');
+            return $this->redirect('/mesAnnonces');
+        } catch (\Exception $e) {
+            Session::flash('error', 'Une erreur est survenue lors de la suppression du todo');
+            return $this->redirect('/mesAnnonces');
+        }
+
     }
 }
