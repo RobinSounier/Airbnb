@@ -42,28 +42,28 @@ class FileUploadService
      * Upload un fichier unique
      *
      * @param array $file Données du fichier ($_FILES['field_name'])
-     * @return UploadResult Résultat de l'upload
+     * @return UploadService Résultat de l'upload
      */
-    public function upload(array $file): UploadResult
+    public function upload(array $file): UploadService
     {
         // Vérifier si le fichier est fourni
         if (!isset($file['tmp_name']) || empty($file['tmp_name'])) {
-            return UploadResult::error('Aucun fichier fourni');
+            return UploadService::error('Aucun fichier fourni');
         }
 
         // Vérifier que c'est un fichier uploadé valide
         if (!is_uploaded_file($file['tmp_name'])) {
-            return UploadResult::error('Fichier non valide ou corrompu');
+            return UploadService::error('Fichier non valide ou corrompu');
         }
 
         // Vérifier les erreurs d'upload PHP
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            return UploadResult::error($this->getUploadErrorMessage($file['error']));
+            return UploadService::error($this->getUploadErrorMessage($file['error']));
         }
 
         // Validation de la taille
         if ($file['size'] > $this->maxFileSize) {
-            return UploadResult::error(
+            return UploadService::error(
                 sprintf('Le fichier dépasse la taille maximale de %d MB', $this->maxFileSize / 1024 / 1024)
             );
         }
@@ -71,13 +71,13 @@ class FileUploadService
         // Validation du type MIME
         $mimeType = $this->getMimeType($file['tmp_name']);
         if (!$this->isAllowedMimeType($mimeType)) {
-            return UploadResult::error(sprintf('Type de fichier non autorisé: %s', $mimeType ?: 'inconnu'));
+            return UploadService::error(sprintf('Type de fichier non autorisé: %s', $mimeType ?: 'inconnu'));
         }
 
         // Validation de l'extension
         $extension = $this->getExtension($file['name']);
         if (!$this->isAllowedExtension($extension)) {
-            return UploadResult::error(sprintf('Extension non autorisée: .%s', $extension));
+            return UploadService::error(sprintf('Extension non autorisée: .%s', $extension));
         }
 
         // Générer un nom de fichier unique
@@ -86,18 +86,18 @@ class FileUploadService
 
         // Déplacer le fichier
         if (!move_uploaded_file($file['tmp_name'], $destination)) {
-            return UploadResult::error('Impossible de déplacer le fichier uploadé vers le répertoire de destination');
+            return UploadService::error('Impossible de déplacer le fichier uploadé vers le répertoire de destination');
         }
 
         // Vérifier que le fichier a bien été déplacé
         if (!file_exists($destination)) {
-            return UploadResult::error('Le fichier n\'a pas pu être sauvegardé');
+            return UploadService::error('Le fichier n\'a pas pu être sauvegardé');
         }
 
         // Déterminer le type de média
         $type = $this->determineType($mimeType);
 
-        return UploadResult::success([
+        return UploadService::success([
             'filename' => $filename,
             'original_filename' => $file['name'],
             'path' => '/uploads/' . $filename,
@@ -111,25 +111,25 @@ class FileUploadService
      * Upload plusieurs fichiers
      *
      * @param array $files Tableau de fichiers ($_FILES['field_name'])
-     * @return UploadResult Résultat avec tous les fichiers uploadés et les erreurs
+     * @return UploadService Résultat avec tous les fichiers uploadés et les erreurs
      */
-    public function uploadMultiple(array $files): UploadResult
+    public function uploadMultiple(array $files): UploadService
     {
         // Vérifier si des fichiers ont été fournis
         if (empty($files) || !isset($files['name'])) {
-            return UploadResult::success([]);
+            return UploadService::success([]);
         }
 
         // Normaliser le tableau de fichiers
         $normalizedFiles = $this->normalizeFilesArray($files);
 
         if (empty($normalizedFiles)) {
-            return UploadResult::success([]);
+            return UploadService::success([]);
         }
 
         // Vérifier le nombre maximum de fichiers
         if (count($normalizedFiles) > $this->maxFiles) {
-            return UploadResult::error(
+            return UploadService::error(
                 sprintf('Nombre maximum de fichiers dépassé (%d fichiers maximum)', $this->maxFiles)
             );
         }
@@ -150,7 +150,7 @@ class FileUploadService
             }
         }
 
-        return UploadResult::multiple($uploaded, $errors);
+        return UploadService::multiple($uploaded, $errors);
     }
 
     /**

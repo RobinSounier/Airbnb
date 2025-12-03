@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Role;
 use JulienLinard\Doctrine\Mapping\Entity;
 use JulienLinard\Doctrine\Mapping\Column;
 use JulienLinard\Doctrine\Mapping\Id;
@@ -39,7 +40,7 @@ class User implements UserInterface
     public ?\DateTime $created_at = null;
 
     #[ManyToOne(targetEntity: Role::class, joinColumn: 'roles_id')]
-    public ?Role $roles_id = null;
+    public ?Role $role = null; // C'est cette propriété qui est référencée par 'mappedBy' dans Role.php
 
     #[OneToMany(targetEntity: User_Room::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     public array $userRooms = [];
@@ -50,21 +51,20 @@ class User implements UserInterface
     public \DateTime $updated_at;
 
     public function getAuthRoles(): array|string
-    {
-        return $this->role ?? 'user';
-    }
+{
+    // On utilise $this->role (l'objet)
+    // On retourne le nom du rôle ou 'user' par défaut
+    return $this->role ? $this->role->name : 'user';
+}
 
-    /**
-     * Retourne les permissions de l'utilisateur
-     *
-     * @return array
-     */
     public function getAuthPermissions(): array
     {
-        // Permissions basées sur le rôle
-        return match ($this->roleId) {
-            '2' => ['edit-posts', 'delete-posts', 'create-posts'],
-            '1' => ['view-posts'],
+        // On vérifie l'ID via l'objet role
+        $roleId = $this->role ? $this->role->id : 1;
+
+        return match ($roleId) {
+            2 => ['edit-posts', 'delete-posts', 'create-posts'],
+            1 => ['view-posts'],
             default => []
         };
     }
