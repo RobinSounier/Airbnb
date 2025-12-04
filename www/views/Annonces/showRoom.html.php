@@ -32,6 +32,16 @@ require dirname(__FILE__) . '/../_templates/_navbar.html.php';
             <li><span class="font-medium">Lits :</span> <?= htmlspecialchars($room->number_of_bed) ?></li>
         </ul>
 
+        <h2 class="text-2xl font-semibold mb-4">Ce que propose ce logement</h2>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <?php foreach ($room->equipments as $equip): ?>
+                <div class="flex items-center text-gray-600">
+                    <span class="mr-3 text-lg">✨</span>
+                    <span><?= htmlspecialchars($equip->name) ?></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
         <?php
         // --- Définit la variable $id à partir de l'objet $room ---
         $id = $room->id;

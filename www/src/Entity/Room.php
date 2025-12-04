@@ -8,6 +8,7 @@ use DateTime;
 use JulienLinard\Doctrine\Mapping\Column;
 use JulienLinard\Doctrine\Mapping\Entity;
 use JulienLinard\Doctrine\Mapping\Id;
+use JulienLinard\Doctrine\Mapping\ManyToMany;
 use JulienLinard\Doctrine\Mapping\ManyToOne;
 use JulienLinard\Doctrine\Mapping\OneToMany;
 
@@ -57,4 +58,8 @@ class Room
 
     #[OneToMany(targetEntity: Reservation::class, mappedBy: 'room', cascade: ['persist', 'remove'])]
     public array $reservations = [];
+
+    #[ManyToMany(targetEntity: Equipment::class ,joinTable: 'room_equipment', cascade: ['persist', 'remove'])]
+
+    public array $equipments = [];
 }
