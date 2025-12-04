@@ -1,3 +1,7 @@
+<?php
+// On inclut la navbar
+require dirname(__FILE__) . '/../_templates/_navbar.html.php';
+?>
 <div class="max-w-4xl mx-auto py-10">
     <a href="/" class="text-gray-600 hover:text-[#FF5A5F] mb-4 inline-block">&larr; Retour à l'accueil</a>
 
@@ -19,12 +23,17 @@
 
         <h2 class="2xl font-semibold mb-3">Détails</h2>
         <ul class="space-y-2 text-gray-600">
+            <li>
+                <span class="font-medium">Type :</span>
+                <?= htmlspecialchars($room->type ?? 'Logement') ?>
+            </li>
+
             <li><span class="font-medium">Lieu :</span> <?= htmlspecialchars($room->city) ?>, <?= htmlspecialchars($room->country) ?></li>
             <li><span class="font-medium">Lits :</span> <?= htmlspecialchars($room->number_of_bed) ?></li>
         </ul>
 
         <?php
-        // --- CODE AJOUTÉ : Définit la variable $id à partir de l'objet $room ---
+        // --- Définit la variable $id à partir de l'objet $room ---
         $id = $room->id;
         ?>
 

@@ -29,6 +29,17 @@
                             $country = is_array($room) ? $room['country'] : $room->country;
                             $price = is_array($room) ? $room['price_per_night'] : $room->price_per_night;
                             $description = is_array($room) ? $room['description'] : $room->description;
+                            $roomType = is_array($room) ? ($room['type_of_room'] ?? 'Non spécifié') : ($room->type_of_room ?? 'Non spécifié');
+
+                            // Traduction du type de chambre pour l'affichage
+                            $typeDisplay = match ($roomType) {
+                                'simple' => 'Chambre simple',
+                                'double' => 'Chambre double',
+                                'suite' => 'Suite',
+                                'dortoir' => 'Dortoir',
+                                'studio' => 'Studio',
+                                default => ucfirst($roomType) // Met la première lettre en majuscule si non trouvé
+                            };
                             ?>
 
                             <?php if ($mediaPath): ?>
@@ -46,10 +57,14 @@
                         </div>
 
                         <div class="p-4">
-                            <div class="flex justify-between items-start mb-2">
+                            <div class="flex justify-between items-start mb-1">
                                 <h2 class="text-xl font-bold text-gray-800 truncate pr-2"><?= htmlspecialchars($title) ?></h2>
                                 <span class="font-bold text-lg text-gray-900"><?= htmlspecialchars($price) ?>€ / nuit</span>
                             </div>
+
+                            <p class="text-xs font-semibold text-blue-600 mb-2">
+                                <?= htmlspecialchars($typeDisplay) ?>
+                            </p>
 
                             <p class="text-gray-500 text-sm mb-3">
                                 <?= htmlspecialchars($city) ?>, <?= htmlspecialchars($country) ?>
@@ -87,7 +102,6 @@
                 </span>
                                 <?php $id = is_array($room) ? $room['id'] : $room->id; ?>
                                 <div class="flex space-x-4">
-                                    <!-- Bouton Modifier -->
                                     <a href="/room/edit?id=<?= $id ?>"
                                        class="text-[#FF5A5F] text-sm font-semibold hover:underline flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
@@ -98,7 +112,6 @@
                                         Modifier
                                     </a>
 
-                                    <!-- Bouton Supprimer -->
                                     <?php $id = is_array($room) ? $room['id'] : $room->id; ?>
                                     <form method="POST" action="/room/<?= htmlspecialchars($id) ?>/delete"
                                           onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?');">

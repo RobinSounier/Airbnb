@@ -24,7 +24,6 @@ class ReservationController extends Controller
     public function __construct(
         private AuthManager $auth,
         private EntityManager $em,
-        // SUPPRIMÉ : private ReservationRepository $reservationRepository,
     ) {}
 
     #[Route(path: "/reservation/create", name: "app_reservation_create_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
@@ -132,11 +131,14 @@ class ReservationController extends Controller
             $this->em->flush();
 
             Session::flash('success', 'Réservation effectuée avec succès !');
-            return $this->redirect('/reservation/success');
+            return $this->view('Reservation/reservationSuccess', [
+                'room' => $room,
+                'title' => 'Réservation Confirmée'
+            ]);
 
         } catch (\Exception $e) {
             Session::flash('error', 'Erreur système lors de la réservation : ' . $e->getMessage());
-            return $this->redirect('/reservation/create?room_id=' . $roomId);
+            return $this->redirect('/Reservation/create?room_id=' . $roomId);
         }
     }
 
@@ -144,12 +146,35 @@ class ReservationController extends Controller
     #[Route(path: "/reservation/success", name: "app_reservation_success", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function success(): Response
     {
-        if (!Session::has('success')) {
-            return $this->redirect('/');
-        }
 
         return $this->view('Reservation/reservationSuccess', [
             'title' => 'Réservation Confirmée',
         ]);
     }
+
+    #[Route(path: "/mesReservations", name: "app_host_reservations", methods: ["GET"], middleware: [AuthMiddleware::class])]
+    public function hostReservations(): Response
+    {
+        $user = $this->auth->user();
+
+        // VÉRIFICATION DE SÉCURITÉ : N'autoriser que les hôtes à voir cette page
+        if (($user->role ?? 'user') !== 'hote') {
+            Session::flash('error', 'Accès refusé. Cette page est réservée aux hôtes.');
+            return $this->redirect('/');
+        }
+
+        // 1. Récupérer le Repository
+        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
+
+        // 2. Récupérer toutes les réservations des biens de l'hôte
+        $reservations = $reservationRepo->findHostReservations($this->em, $user);
+
+
+        return $this->view('Reservation/mesReservation', [
+            'title' => 'Réservations de mes biens',
+            'reservations' => $reservations,
+            'auth' => $this->auth // Pour la navbar
+        ]);
+    }
+
 }

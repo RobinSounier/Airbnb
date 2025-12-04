@@ -37,6 +37,9 @@ class Room
     #[Column(type: 'int', nullable: false)]
     public int $number_of_bed = 1;
 
+    #[Column(type: 'string', length: 255, nullable: false)]
+    public string $type_of_room;
+
     #[Column(type: 'datetime', nullable: true, default: 'CURRENT_TIMESTAMP')]
     public ?\DateTime $created_at = null;
 
