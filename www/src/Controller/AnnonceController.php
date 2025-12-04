@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Equipment;
 use App\Entity\Room;
 use App\Entity\User;
 use App\Entity\User_Room;
+use App\Repository\EquipmentRepository;
 use App\Repository\RoomRepository;
 use App\Repository\UserRepository;
 use App\Repository\User_RoomRepository; // Import nécessaire
@@ -47,10 +49,15 @@ class AnnonceController extends Controller
     #[Route(path: "/room/create", name: "app_room_create_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function createForm(): Response
     {
+
+        $equipmentRepo = $this->em->createRepository(\JulienLinard\Doctrine\Repository\EntityRepository::class, \App\Entity\Equipment::class);
+        $allEquipments = $equipmentRepo->findAll();
+
         return $this->view('Annonces/createRoom', [
             'title' => 'Créer une annonce',
             'errors' => [],
-            'old' => ['title' => '', 'description' => '', 'country' => '', 'city' => '', 'price_per_night' => '', 'number_of_bed' => '']
+            'old' => ['title' => '', 'description' => '', 'country' => '', 'city' => '', 'price_per_night' => '', 'number_of_bed' => ''],
+            'allEquipments' => $allEquipments
         ]);
     }
 
@@ -62,6 +69,8 @@ class AnnonceController extends Controller
             return $this->redirect('/login');
         }
 
+
+
         // 1. Récupération des données
         $title = trim($request->getPost('title', '') ?? '');
         $description = trim($request->getPost('description', '') ?? '');
@@ -70,6 +79,7 @@ class AnnonceController extends Controller
         $price_per_night = (int)$request->getPost('price_per_night', 0);
         $number_of_bed = (int)$request->getPost('number_of_bed', 0);
         $type_of_room = trim($request->getPost('type_of_room', '') ?? '');
+        $selectedEquipments = $request->getPost('equipments', []);
 
         // 2. Validation
         $errors = [];
@@ -143,6 +153,21 @@ class AnnonceController extends Controller
             $room->updated_at = new \DateTime();
             $room->is_reserved = false;
             $room->media_path = $imagePath;
+            $room->equipments = [];
+
+            if (!empty($selectedEquipments) && is_array($selectedEquipments)) {
+                // Création du repository
+                $equipmentRepo = $this->em->createRepository(EquipmentRepository::class, Equipment::class);
+
+                foreach ($selectedEquipments as $equipId) {
+                    // CORRECTION : Utilisez $equipmentRepo (et pas $equipRepo)
+                    $equip = $equipmentRepo->find((int)$equipId);
+
+                    if ($equip) {
+                        $room->equipments[] = $equip; // Ajout à la relation
+                    }
+                }
+            }
 
             $this->em->persist($room);
             $this->em->flush(); // FLUSH 1 : Indispensable pour récupérer l'ID de la room
@@ -185,6 +210,10 @@ class AnnonceController extends Controller
     #[Route(path: "/room/edit", name: "app_edit_room_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function editForm(Request $request): Response
     {
+
+        $equipmentRepo = $this->em->createRepository(\JulienLinard\Doctrine\Repository\EntityRepository::class, \App\Entity\Equipment::class);
+        $allEquipments = $equipmentRepo->findAll();
+
         $user = $this->auth->user();
         if (!$user) {
             return $this->redirect('/login');
@@ -222,7 +251,8 @@ class AnnonceController extends Controller
         // 2. Rendre la vue
         return $this->view('Annonces/editRoom', [
             'room' => $room,
-            'errors' => []
+            'errors' => [],
+            'allEquipments' => $allEquipments
         ]);
     }
 

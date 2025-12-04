@@ -116,6 +116,32 @@ $old = $old ?? [
                 <?php endif; ?>
             </div>
 
+            <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ce que propose ce logement</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <?php foreach ($allEquipments as $equip): ?>
+                        <?php
+                        // Pour l'édition : vérifier si l'équipement est déjà dans la room
+                        $isChecked = false;
+                        if (isset($room) && !empty($room->equipments)) {
+                            foreach ($room->equipments as $roomEquip) {
+                                if ($roomEquip->id === $equip->id) {
+                                    $isChecked = true;
+                                    break;
+                                }
+                            }
+                        }
+                        ?>
+                        <label class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                            <input type="checkbox" name="equipments[]" value="<?= $equip->id ?>"
+                                   class="h-5 w-5 text-[#FF5A5F] focus:ring-[#FF5A5F] border-gray-300 rounded"
+                                    <?= $isChecked ? 'checked' : '' ?>>
+                            <span class="text-gray-700 font-medium"><?= htmlspecialchars($equip->name) ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
 
             <!-- Description -->
             <div>
