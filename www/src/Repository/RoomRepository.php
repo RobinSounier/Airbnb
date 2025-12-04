@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Equipment;
 use App\Entity\Room;
 use App\Entity\User_Room;
 use JulienLinard\Doctrine\EntityManager;
@@ -85,5 +86,35 @@ class RoomRepository extends EntityRepository
 
         return $qb->getResult();
     }
+
+
+    public function loadEquipments(Room $room): void
+    {
+        // 1. On récupère l'objet PDO natif pour faire un SELECT facile
+        $pdo = $this->em->getConnection()->getPdo();
+
+        // 2. Requête SQL avec jointure
+        $sql = "SELECT e.* FROM equipments e
+                INNER JOIN room_equipments re ON e.id = re.equipment_id
+                WHERE re.room_id = :id";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id' => $room->id]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // 3. On hydrate (remplit) le tableau d'équipements de la Room
+        $room->equipments = []; // On s'assure que c'est vide au départ
+
+        foreach ($results as $row) {
+            $equip = new Equipment();
+            $equip->id = (int)$row['id'];
+            $equip->name = $row['name'];
+            $equip->icon = $row['icon'] ?? null;
+
+            // On l'ajoute à la liste de la chambre
+            $room->equipments[] = $equip;
+        }
+    }
+
 
 }
