@@ -15,12 +15,17 @@ use JulienLinard\Doctrine\Repository\EntityRepository;
 class ReservationRepository extends EntityRepository
 {
 
-    private EntityManager $entityManager;
+    protected EntityManager $em;
 
-
-    public function __construct(EntityManager $entityManager)
+    // 2. On initialise via le constructeur
+    public function __construct(EntityManager $em)
     {
-        $this->entityManager = $entityManager;
+        parent::__construct(
+            $em->getConnection(),
+            $em->getMetadataReader(),
+            Reservation::class
+        );
+        $this->em = $em;
     }
 
 
@@ -33,7 +38,7 @@ class ReservationRepository extends EntityRepository
         $startSql = $startDate->format('Y-m-d H:i:s');
         $endSql   = $endDate->format('Y-m-d H:i:s');
 
-        $qb = $this->entityManager->createQueryBuilder();
+        $qb = $this->em->createQueryBuilder();
 
         $qb->select('*')
             ->from(Reservation::class, 'r')
@@ -70,4 +75,34 @@ class ReservationRepository extends EntityRepository
         return $qb->getResult();
 
     }
+
+    /**
+     * Récupère toutes les réservations reçues par un hôte pour ses biens
+     * Retourne un tableau associatif (plus simple pour l'affichage)
+     */
+    public function findReservationsByHost(int $hostId): array
+    {
+        $qb = $this->em->createQueryBuilder();
+
+        $qb->select('
+                r.id, r.start_date, r.end_date, r.created_at,
+                rm.title as room_title, rm.media_path, rm.price_per_night,
+                u.first_name as guest_firstname, u.last_name as guest_lastname, u.email as guest_email
+           ')
+            ->from(Reservation::class, 'r')
+            // 1. On rejoint la chambre concernée
+            ->join(Room::class, 'rm', 'r.room_id = rm.id')
+            // 2. On rejoint le PROPRIÉTAIRE de la chambre
+            ->join(User_Room::class, 'ur', 'rm.id = ur.room_id')
+            // 3. On rejoint le VOYAGEUR (celui qui a fait la résa)
+            ->join(User::class, 'u', 'r.guest_id = u.id')
+            // 4. FILTRE IMPORTANT : On ne veut que les chambres du hostId connecté
+            ->where('ur.user_id = :hostId')
+            ->setParameter('hostId', $hostId)
+            ->orderBy('r.start_date', 'DESC');
+
+        return $qb->getResult();
+    }
+
+
 }

@@ -9,6 +9,7 @@ use App\Entity\Room;
 use App\Entity\User;
 use App\Entity\User_Room;
 use App\Repository\EquipmentRepository;
+use App\Repository\ReservationRepository;
 use App\Repository\RoomRepository;
 use App\Repository\UserRepository;
 use App\Repository\User_RoomRepository; // Import nécessaire
@@ -18,6 +19,7 @@ use JulienLinard\Auth\Middleware\AuthMiddleware;
 use JulienLinard\Core\Controller\Controller;
 use JulienLinard\Core\Session\Session;
 use JulienLinard\Doctrine\EntityManager;
+use JulienLinard\Doctrine\Repository\EntityRepository;
 use JulienLinard\Router\Attributes\Route;
 use JulienLinard\Router\Request;
 use JulienLinard\Router\Response;
@@ -50,7 +52,7 @@ class AnnonceController extends Controller
     public function createForm(): Response
     {
 
-        $equipmentRepo = $this->em->createRepository(\JulienLinard\Doctrine\Repository\EntityRepository::class, \App\Entity\Equipment::class);
+        $equipmentRepo = $this->em->createRepository(EquipmentRepository::class, Equipment::class);
         $allEquipments = $equipmentRepo->findAll();
 
         return $this->view('Annonces/createRoom', [
@@ -155,22 +157,38 @@ class AnnonceController extends Controller
             $room->media_path = $imagePath;
             $room->equipments = [];
 
-            if (!empty($selectedEquipments) && is_array($selectedEquipments)) {
-                // Création du repository
-                $equipmentRepo = $this->em->createRepository(EquipmentRepository::class, Equipment::class);
 
-                foreach ($selectedEquipments as $equipId) {
-                    // CORRECTION : Utilisez $equipmentRepo (et pas $equipRepo)
-                    $equip = $equipmentRepo->find((int)$equipId);
+            $this->em->persist($room);
+            $this->em->flush(); // FLUSH 1 : Indispensable pour avoir l'ID
 
-                    if ($equip) {
-                        $room->equipments[] = $equip; // Ajout à la relation
+            // GESTION DES ÉQUIPEMENTS (Correction pour votre ORM)
+            $selectedEquipments = $request->getPost('equipments', []);
+
+            if (is_array($selectedEquipments)) {
+                // On récupère la connexion directe
+                $conn = $this->em->getConnection();
+
+                // A. NETTOYAGE : Suppression directe via execute()
+                // Note: Pas de prepare(), on passe les paramètres directement
+                $conn->execute(
+                    "DELETE FROM room_equipments WHERE room_id = :room_id",
+                    ['room_id' => $room->id]
+                );
+
+                // B. INSERTION
+                if (!empty($selectedEquipments)) {
+                    // On définit la requête SQL en chaîne de caractères
+                    $sqlInsert = "INSERT INTO room_equipments (room_id, equipment_id) VALUES (:room_id, :equip_id)";
+
+                    foreach ($selectedEquipments as $equipId) {
+                        // On exécute la requête pour CHAQUE équipement
+                        $conn->execute($sqlInsert, [
+                            'room_id'  => $room->id,
+                            'equip_id' => (int)$equipId
+                        ]);
                     }
                 }
             }
-
-            $this->em->persist($room);
-            $this->em->flush(); // FLUSH 1 : Indispensable pour récupérer l'ID de la room
 
             // 5. Création de la liaison User_Room
             $userEntity = $this->em->createRepository(UserRepository::class, User::class)->find($user->id);
@@ -210,8 +228,8 @@ class AnnonceController extends Controller
     #[Route(path: "/room/edit", name: "app_edit_room_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function editForm(Request $request): Response
     {
-
-        $equipmentRepo = $this->em->createRepository(\JulienLinard\Doctrine\Repository\EntityRepository::class, \App\Entity\Equipment::class);
+        // CORRECTION ICI : Utilisation de EquipmentRepository
+        $equipmentRepo = $this->em->createRepository(EquipmentRepository::class, Equipment::class);
         $allEquipments = $equipmentRepo->findAll();
 
         $user = $this->auth->user();
@@ -228,6 +246,7 @@ class AnnonceController extends Controller
 
         // 1. Charger l'annonce
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        /** @var Room|null $room */
         $room = $roomRepo->find($id);
 
         if (!$room) {
@@ -235,8 +254,15 @@ class AnnonceController extends Controller
             return $this->redirect('/mesAnnonces');
         }
 
-        // --- NOUVELLE VÉRIFICATION DE SÉCURITÉ (GET) ---
+        // IMPORTANT : Chargez les équipements existants de la chambre pour pré-cocher les cases !
+        // (Sinon les cases seront vides même si la chambre a des équipements)
+        $roomRepo->loadEquipments($room);
+
+        // --- VÉRIFICATION DE SÉCURITÉ ---
+        // Attention : Vérifiez bien le nom de votre repository UserRoom (souvent App\Repository\UserRoom)
+        // Si votre fichier est UserRoom.php, la classe est probablement UserRoom et non User_RoomRepository
         $userRoomRepo = $this->em->createRepository(User_RoomRepository::class, User_Room::class);
+
         $isOwner = $userRoomRepo->findOneBy([
             'room_id' => $room->id,
             'user_id' => $user->id
@@ -246,7 +272,6 @@ class AnnonceController extends Controller
             Session::flash('error', 'Accès refusé. Vous n’êtes pas le propriétaire de cette annonce.');
             return $this->redirect('/mesAnnonces');
         }
-        // ---------------------------------------------
 
         // 2. Rendre la vue
         return $this->view('Annonces/editRoom', [
@@ -358,6 +383,28 @@ class AnnonceController extends Controller
 
             $connection->execute($sql, $params);
 
+            // --- AJOUTER CE BLOC POUR SAUVEGARDER LES ÉQUIPEMENTS ---
+            $selectedEquipments = $request->getPost('equipments', []);
+
+            // 1. Nettoyage : On supprime les anciens équipements de cette chambre
+            $connection->execute(
+                "DELETE FROM room_equipments WHERE room_id = :room_id",
+                ['room_id' => $room->id]
+            );
+
+            // 2. Insertion des nouveaux
+            if (!empty($selectedEquipments) && is_array($selectedEquipments)) {
+                $sqlInsert = "INSERT INTO room_equipments (room_id, equipment_id) VALUES (:room_id, :equip_id)";
+
+                foreach ($selectedEquipments as $equipId) {
+                    $connection->execute($sqlInsert, [
+                        'room_id'  => $room->id,
+                        'equip_id' => (int)$equipId
+                    ]);
+                }
+            }
+            // ---------------------------------------------------------
+
             Session::flash('success', 'Annonce modifiée avec succès !');
             return $this->redirect('/mesAnnonces');
 
@@ -386,6 +433,8 @@ class AnnonceController extends Controller
             // Annonce introuvable : rediriger ou afficher une erreur 404
             return $this->redirect('/');
         }
+
+        $roomRepo->loadEquipments($room);
 
         // 3. Rendre la vue de l'annonce
         return $this->view('Annonces/showRoom', [
@@ -438,6 +487,25 @@ class AnnonceController extends Controller
             'title' =>  'Airbnb - Locations de vacances',
             'auth' => $this->auth,
             'rooms' => $rooms
+        ]);
+    }
+
+    #[Route(path: '/mes-reservations', name: 'host_reservations', methods: ['GET'], middleware: [AuthMiddleware::class])]
+    public function mesReservationsRecues(): Response
+    {
+        $user = $this->auth->user();
+
+        // Utilisation du Repository corrigé
+        /** @var ReservationRepository $reservationRepo */
+        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
+
+        // Récupération des données
+        $reservations = $reservationRepo->findReservationsByHost($user->id);
+
+        return $this->view('Annonces/mesReservations', [
+            'title' => 'Suivi des réservations',
+            'reservations' => $reservations,
+            'user' => $user
         ]);
     }
 
