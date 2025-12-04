@@ -21,10 +21,6 @@
         </p>
 
         <div class="mt-8 flex justify-center space-x-4">
-            <a href="/mesAnnonces"
-               class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#FF5A5F] hover:bg-[#E14C50] transition shadow-md">
-                Voir Mes Annonces (Espace Hôte)
-            </a>
             <a href="/"
                class="py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition shadow-md">
                 Retour à l'Accueil

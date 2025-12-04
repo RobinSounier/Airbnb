@@ -64,4 +64,26 @@ class RoomRepository extends EntityRepository
         return $count > 0;
     }
 
+    /**
+     * Méthode qui retourne les chambre grace a la recherche
+     * @param string $search
+     * @return array Resultat de la recherche
+     */
+    public function findRoomBySearch(string $search): array
+    {
+
+        $qb = $this->em->createQueryBuilder('r')
+            ->select('*')
+            ->from(Room::class, 'r')
+            ->where('r.title LIKE :search')
+            ->orWhere('r.country LIKE :search1')
+            ->orWhere('r.city LIKE :search2')
+            ->setParameter('search', '%' . $search . '%')
+            ->setParameter('search1', '%' . $search . '%')
+            ->setParameter('search2', '%' . $search . '%');
+
+
+        return $qb->getResult();
+    }
+
 }

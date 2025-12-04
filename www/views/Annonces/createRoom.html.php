@@ -80,6 +80,43 @@ $old = $old ?? [
                 </div>
             </div>
 
+            <!-- Type of Room -->
+            <div>
+                <label for="type_of_room" class="block text-sm font-medium text-gray-700 mb-2">
+                    Type de logement <span class="text-red-500">*</span>
+                </label>
+
+                <select id="type_of_room" name="type_of_room"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2
+                   focus:ring-blue-500 focus:border-transparent <?= isset($errors['type_of_room']) ? 'border-red-500' : '' ?>"
+                        required>
+                    <option value="">-- Sélectionnez un type de logement --</option>
+
+                    <option value="appartement" <?= empty($old['type_of_room']) || ($old['type_of_room'] === 'appartement') ? 'selected' : '' ?>>
+                        Appartement
+                    </option>
+                    <option value="maison" <?= ($old['type_of_room'] ?? '') === 'maison' ? 'selected' : '' ?>>Maison</option>
+                    <option value="studio" <?= ($old['type_of_room'] ?? '') === 'studio' ? 'selected' : '' ?>>Studio</option>
+                    <option value="villa" <?= ($old['type_of_room'] ?? '') === 'villa' ? 'selected' : '' ?>>Villa</option>
+                    <option value="chalet" <?= ($old['type_of_room'] ?? '') === 'chalet' ? 'selected' : '' ?>>Chalet</option>
+                    <option value="bungalow" <?= ($old['type_of_room'] ?? '') === 'bungalow' ? 'selected' : '' ?>>Bungalow</option>
+                    <option value="loft" <?= ($old['type_of_room'] ?? '') === 'loft' ? 'selected' : '' ?>>Loft</option>
+                    <option value="duplex" <?= ($old['type_of_room'] ?? '') === 'duplex' ? 'selected' : '' ?>>Duplex</option>
+                    <option value="tiny_house" <?= ($old['type_of_room'] ?? '') === 'tiny_house' ? 'selected' : '' ?>>Tiny House</option>
+                    <option value="mobil_home" <?= ($old['type_of_room'] ?? '') === 'mobil_home' ? 'selected' : '' ?>>Mobil-home</option>
+                    <option value="gite" <?= ($old['type_of_room'] ?? '') === 'gite' ? 'selected' : '' ?>>Gîte</option>
+                    <option value="maison_hotes" <?= ($old['type_of_room'] ?? '') === 'maison_hotes' ? 'selected' : '' ?>>Maison d’hôtes</option>
+                    <option value="chambre_privee" <?= ($old['type_of_room'] ?? '') === 'chambre_privee' ? 'selected' : '' ?>>Chambre privée</option>
+                    <option value="chambre_partagee" <?= ($old['type_of_room'] ?? '') === 'chambre_partagee' ? 'selected' : '' ?>>Chambre partagée</option>
+                    <option value="penthouse" <?= ($old['type_of_room'] ?? '') === 'penthouse' ? 'selected' : '' ?>>Penthouse</option>
+                </select>
+
+                <?php if (isset($errors['type_of_room'])): ?>
+                    <p class="mt-1 text-sm text-red-600"><?= htmlspecialchars($errors['type_of_room']) ?></p>
+                <?php endif; ?>
+            </div>
+
+
             <!-- Description -->
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>

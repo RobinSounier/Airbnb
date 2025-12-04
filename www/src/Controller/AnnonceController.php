@@ -44,7 +44,143 @@ class AnnonceController extends Controller
 
     }
 
-    // ... (méthodes createForm et create non modifiées) ...
+    #[Route(path: "/room/create", name: "app_room_create_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
+    public function createForm(): Response
+    {
+        return $this->view('Annonces/createRoom', [
+            'title' => 'Créer une annonce',
+            'errors' => [],
+            'old' => ['title' => '', 'description' => '', 'country' => '', 'city' => '', 'price_per_night' => '', 'number_of_bed' => '']
+        ]);
+    }
+
+    #[Route(path: "/room/create", name: "app_add_room", methods: ["POST"], middleware: [AuthMiddleware::class])]
+    public function create(Request $request): Response
+    {
+        $user = $this->auth->user();
+        if (!$user) {
+            return $this->redirect('/login');
+        }
+
+        // 1. Récupération des données
+        $title = trim($request->getPost('title', '') ?? '');
+        $description = trim($request->getPost('description', '') ?? '');
+        $country = trim($request->getPost('country', '') ?? '');
+        $city = trim($request->getPost('city', '') ?? '');
+        $price_per_night = (int)$request->getPost('price_per_night', 0);
+        $number_of_bed = (int)$request->getPost('number_of_bed', 0);
+        $type_of_room = trim($request->getPost('type_of_room', '') ?? '');
+
+        // 2. Validation
+        $errors = [];
+        if (empty($title)) $errors['title'] = 'Le titre est requis';
+        if (empty($country)) $errors['country'] = 'Le pays est requis';
+        if (empty($city)) $errors['city'] = 'La ville est requise';
+        if ($price_per_night <= 0) $errors['price_per_night'] = 'Le prix doit être positif';
+        if ($number_of_bed <= 0) $errors['number_of_bed'] = 'Le nombre de lits est requis';
+        $allowedTypes = [
+            'appartement',
+            'maison',
+            'studio',
+            'villa',
+            'chalet',
+            'bungalow',
+            'loft',
+            'duplex',
+            'tiny_house',
+            'mobil_home',
+            'gite',
+            'maison_hotes',
+            'chambre_privee',
+            'chambre_partagee',
+            'penthouse'
+        ];
+        if (!in_array($type_of_room, $allowedTypes)) {
+            $errors['type_of_room'] = 'Type de chambre invalide.';
+        }
+
+        $imagePath = null;
+
+        // 3. Gestion de l'image
+        if (isset($_FILES['media']) && $_FILES['media']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $uploadResult = $this->fileUploadService->upload($_FILES['media']);
+
+            if ($uploadResult->isSuccess()) {
+                $data = $uploadResult->getData();
+                $imagePath = ltrim($data['path'], '/');
+            } else {
+                $errors['general'] = $uploadResult->getError();
+            }
+        }
+
+        if (!empty($errors)) {
+            Session::flash('error', 'Veuillez corriger les erreurs.');
+            return $this->view('Annonces/createRoom', [
+                'title' => 'Créer une annonce',
+                'errors' => $errors,
+                'old' => [
+                    'title' => $title,
+                    'description' => $description,
+                    'country' => $country,
+                    'city' => $city,
+                    'price_per_night' => $price_per_night,
+                    'number_of_bed' => $number_of_bed
+                ]
+            ]);
+        }
+
+        try {
+            // 4. Création de la Room
+            $room = new Room();
+            $room->title = $title;
+            $room->description = $description;
+            $room->country = $country;
+            $room->city = $city;
+            $room->price_per_night = $price_per_night;
+            $room->number_of_bed = $number_of_bed;
+            $room->type_of_room = $type_of_room;
+            $room->created_at = new \DateTime();
+            $room->updated_at = new \DateTime();
+            $room->is_reserved = false;
+            $room->media_path = $imagePath;
+
+            $this->em->persist($room);
+            $this->em->flush(); // FLUSH 1 : Indispensable pour récupérer l'ID de la room
+
+            // 5. Création de la liaison User_Room
+            $userEntity = $this->em->createRepository(UserRepository::class, User::class)->find($user->id);
+            // On s'assure que l'entité User est suivie
+            $this->em->persist($userEntity);
+
+            $userRoom = new User_Room();
+            $userRoom->user = $userEntity;
+            $userRoom->room = $room;
+            $this->em->persist($userRoom);
+
+            // 6. Changement de rôle (Si pas déjà Hôte)
+            // Utilisation de la propriété string 'role'
+            if ($userEntity->role !== 'hote') {
+                $userEntity->role = 'hote';
+                $userEntity->updated_at = new \DateTime();
+                // $this->em->persist($userEntity); // Déjà persisté plus haut
+            }
+
+            // 7. FLUSH FINAL (Enregistre User_Room et l'UPDATE User)
+            $this->em->flush();
+
+            // 8. Mise à jour de la session pour refléter le nouveau rôle immédiatement
+            if (method_exists($this->auth, 'login')) {
+                $this->auth->login($userEntity);
+            }
+
+            Session::flash('success', 'Bien ajouté ! Vous êtes maintenant un Hôte.');
+            return $this->redirect('/mesAnnonces');
+
+        } catch (\Exception $e) {
+            Session::flash('error', 'Erreur système : ' . $e->getMessage());
+            return $this->redirect('/room/create');
+        }
+    }
 
     #[Route(path: "/room/edit", name: "app_edit_room_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function editForm(Request $request): Response
@@ -128,6 +264,7 @@ class AnnonceController extends Controller
         $city = trim($request->getPost('city', '') ?? '');
         $price_per_night = (int)$request->getPost('price_per_night', 0);
         $number_of_bed = (int)$request->getPost('number_of_bed', 0);
+        $type_of_room = trim($request->getPost('type_of_room', '') ?? '');
 
         if (empty($title) || $price_per_night <= 0) {
             Session::flash('error', 'Titre et prix sont obligatoires.');
@@ -141,6 +278,7 @@ class AnnonceController extends Controller
             $room->country = $country;
             $room->city = $city;
             $room->price_per_night = $price_per_night;
+            $room->type_of_room = $type_of_room;
             $room->number_of_bed = $number_of_bed;
             $room->updated_at = new \DateTime();
 
@@ -170,6 +308,7 @@ class AnnonceController extends Controller
                 city = :city,
                 price_per_night = :price,
                 number_of_bed = :beds,
+                type_of_room = :type,
                 updated_at = :updated_at,
                 media_path = :media_path
                 WHERE id = :id";
@@ -181,6 +320,7 @@ class AnnonceController extends Controller
                 'city' => $room->city,
                 'price' => $room->price_per_night,
                 'beds' => $room->number_of_bed,
+                'type' => $room->type_of_room,
                 'updated_at' => $room->updated_at->format('Y-m-d H:i:s'),
                 'media_path' => $room->media_path,
                 'id' => $room->id
@@ -196,4 +336,79 @@ class AnnonceController extends Controller
             return $this->redirect('/room/edit?id=' . $id);
         }
     }
+
+    #[Route(path: "/room/{id}", name: "app_room_show", methods: ["GET"])]
+    public function show(Request $request): Response
+    {
+        // 1. Récupérer l'ID de la Room depuis l'URL (le chemin)
+        $id = (int) $request->getRouteParam('id', 0);
+
+        if ($id === 0) {
+            // Optionnel : rediriger ou afficher une erreur si l'ID est invalide
+            return $this->redirect('/');
+        }
+
+        // 2. Charger l'annonce depuis la base de données
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        $room = $roomRepo->find($id);
+
+        if (!$room) {
+            // Annonce introuvable : rediriger ou afficher une erreur 404
+            return $this->redirect('/');
+        }
+
+        // 3. Rendre la vue de l'annonce
+        return $this->view('Annonces/showRoom', [
+            'room' => $room,
+            'title' => $room->title . ' - Airbnb',
+            'auth' => $this->auth,
+        ]);
+    }
+
+    #[Route(path: "/room/{id}/delete", name: "app_room_delete", methods: ["Post"], middleware: [AuthMiddleware::class])]
+    public function delete(Request $request): Response
+    {
+        $id = (int) $request->getPost('id', 0);
+        if ($id === 0) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/');
+        }
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+        $room = $roomRepo->find($id);
+        if (!$room) {
+            Session::flash('error', 'Annonce introuvable.');
+            return $this->redirect('/');
+        }
+
+        try{
+            $this->em->remove($room);
+            $this->em->flush();
+            Session::flash('success', 'Annonce supprimé avec succès !');
+            return $this->redirect('/mesAnnonces');
+        } catch (\Exception $e) {
+            Session::flash('error', 'Une erreur est survenue lors de la suppression du todo');
+            return $this->redirect('/mesAnnonces');
+        }
+
+    }
+
+    #[Route(path: "/room/search", name: "app_room_search", methods: ["POST"])]
+    public function searchRoomsView(Request $request): Response
+    {
+        $textContent = trim($request->getPost('searchNavBar', ''));
+        $textContent = preg_replace('/\s+/', ' ', $textContent);
+        $textContent = strtolower($textContent);
+
+        $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
+
+        $rooms = $roomRepo->findRoomBySearch($textContent);
+
+
+        return $this->view('Annonces/searchAnnonces', [
+            'title' =>  'Airbnb - Locations de vacances',
+            'auth' => $this->auth,
+            'rooms' => $rooms
+        ]);
+    }
+
 }

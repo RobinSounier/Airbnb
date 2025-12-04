@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Reservation;
+use App\Entity\Room;
+use App\Entity\User;
+use App\Entity\User_Room;
+use JulienLinard\Auth\AuthManager;
 use JulienLinard\Doctrine\EntityManager;
 use JulienLinard\Doctrine\Repository\EntityRepository;
 
@@ -12,6 +16,7 @@ class ReservationRepository extends EntityRepository
 {
 
     private EntityManager $entityManager;
+
 
     public function __construct(EntityManager $entityManager)
     {
@@ -43,5 +48,26 @@ class ReservationRepository extends EntityRepository
         $result = $qb->getResult();
 
         return !empty($result);
+    }
+
+
+    public function findHostReservations(EntityManager $em, User $user): array
+    {
+        $hostId = $user->id;
+
+        // On utilise les jointures pour relier la Réservation à la Chambre,
+        // puis la Chambre à son Propriétaire (l'Hôte) via la table user_rooms.
+        $qb = $em->createQueryBuilder()
+            ->select('*')
+            ->from(Reservation::class, 'r')
+            ->join(Room::class, 'rm', 'r.room_id = rm.id')
+            ->join(User_Room::class, 'ur', 'r.room_id = ur.room_id')
+            ->join(User::class, 'u', 'r.guest_id = u.id')
+            ->where('ur.user_id = :hostId')
+            ->setParameter('hostId', $hostId)
+            ->orderBy('r.start_date', 'DESC');
+
+        return $qb->getResult();
+
     }
 }
