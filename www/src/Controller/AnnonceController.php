@@ -428,6 +428,7 @@ class AnnonceController extends Controller
         // 2. Charger l'annonce depuis la base de données
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
         $room = $roomRepo->find($id); // Charge l'objet Room
+        $hostName = $roomRepo-> FindNamebyRoomId($room->id);
 
         // AJOUT DE LA CORRECTION : Chargement manuel des équipements
         if (!$room) {
@@ -447,6 +448,7 @@ class AnnonceController extends Controller
             'ownerName' => $ownerName,
             'title' => $room->title . ' - Airbnb',
             'auth' => $this->auth,
+            'hostName' => $hostName,
         ]);
     }
 
