@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Equipment;
 use App\Entity\Room;
+use App\Entity\User;
 use App\Entity\User_Room;
 use JulienLinard\Doctrine\EntityManager;
 use JulienLinard\Doctrine\Repository\EntityRepository;
@@ -114,6 +115,21 @@ class RoomRepository extends EntityRepository
             // On l'ajoute à la liste de la chambre
             $room->equipments[] = $equip;
         }
+    }
+
+    public function FindNamebyRoomId(int $roomID): ?array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('u.first_name, u.last_name')
+            ->from(User::class, 'u')
+            ->join(User_Room::class, 'ur', 'u.id = ur.user_id')
+            ->join(Room::class, 'r', 'r.id = ur.room_id')
+            ->where('r.id = :roomId')
+            ->setParameter('roomId', $roomID)
+
+            ->setMaxResults(1);
+
+        return $qb->getResult();
     }
 
 
