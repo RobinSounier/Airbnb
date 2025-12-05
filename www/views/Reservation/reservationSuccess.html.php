@@ -28,5 +28,3 @@
         </div>
     </div>
 </div>
-
-<?php require dirname(__FILE__) . '/../_templates/_footer.html.php'; ?>

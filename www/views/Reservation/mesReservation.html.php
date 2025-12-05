@@ -99,5 +99,3 @@ require dirname(__FILE__) . '/../_templates/_header.html.php';
             <?php endif; ?>
         </div>
     </div>
-
-<?php require dirname(__FILE__) . '/../_templates/_footer.html.php'; ?>
