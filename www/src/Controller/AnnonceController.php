@@ -427,7 +427,15 @@ class AnnonceController extends Controller
 
         // 2. Charger l'annonce depuis la base de données
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
-        $room = $roomRepo->find($id);
+        $room = $roomRepo->find($id); // Charge l'objet Room
+
+        // AJOUT DE LA CORRECTION : Chargement manuel des équipements
+        if (!$room) {
+            // Rediriger ou afficher une erreur si l'annonce n'existe pas
+            return $this->redirect('/');
+        }
+        $roomRepo->loadEquipments($room); // Cette ligne charge la relation Many-to-Many manquante
+
         $ownerData = $roomRepo->FindNamebyRoomId($room->id);
 
 
