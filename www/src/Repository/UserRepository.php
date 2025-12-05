@@ -26,6 +26,12 @@ class UserRepository extends EntityRepository
         return $user !== null;
     }
 
+    /**
+     * retourne l'id d'un user
+     * @param string $user
+     * @return int|null
+     */
+
     public function getId(string $user): ?int
     {
         $user = $this->findByEmail($user);

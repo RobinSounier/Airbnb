@@ -16,6 +16,7 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Entity\Room;
+use App\Repository\EquipmentRepository;
 use App\Repository\RoleRepository;
 use App\Repository\RoomRepository;
 use JulienLinard\Core\Controller\Controller;
@@ -46,16 +47,33 @@ class HomeController extends Controller
      * CONCEPT : Route simple sans middleware
      */
     #[Route(path: '/', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        // Récupération de toutes les annonces
+        // 1. Récupération des filtres depuis l'URL (méthode GET)
+        $filters = [
+            'country' => $request->getQueryParam('country', ''),
+            'city' => $request->getQueryParam('city', ''),
+            'roomType' => $request->getQueryParam('room_type', ''),
+            'minPrice' => $request->getQueryParam('min_price', null),
+            'maxPrice' => $request->getQueryParam('max_price', null),
+            // Les équipements sont récupérés en tableau
+            'equipmentIds' => $request->getQueryParam('equipments', []),
+        ];
+
+        // 2. Initialisation des Repositories
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
-        $rooms = $roomRepo->findAllRooms(); // Utilisation de notre nouvelle méthode
+        $equipmentRepo = $this->em->createRepository(EquipmentRepository::class, \App\Entity\Equipment::class);
+
+        // 3. Récupérer les données pour la page
+        $rooms = $roomRepo->findRoomsByFilters($filters);
+        $allEquipments = $equipmentRepo->findAll(); // Pour afficher les options dans le formulaire
 
         return $this->view('home/index', [
-            'title' => 'Airbnb - Locations de vacances',
+            'title' => 'Airbnb',
             'auth' => $this->auth,
-            'rooms' => $rooms // On passe les données à la vue
+            'rooms' => $rooms,
+            'allEquipments' => $allEquipments,
+            'currentFilters' => $filters, // On repasse les filtres pour les rendre "sticky"
         ]);
     }
 
