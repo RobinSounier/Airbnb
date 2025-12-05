@@ -177,4 +177,21 @@ class ReservationController extends Controller
         ]);
     }
 
+    #[Route(path: '/mes-reservations', name: 'host_reservations', methods: ['GET'], middleware: [AuthMiddleware::class])]
+    public function mesReservationsRecues(): Response
+    {
+        $user = $this->auth->user();
+
+        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
+
+        // Récupération des données
+        $reservations = $reservationRepo->findReservationsByHost($user->id);
+
+        return $this->view('Annonces/mesReservations', [
+            'title' => 'Suivi des réservations',
+            'reservations' => $reservations,
+            'user' => $user
+        ]);
+    }
+
 }

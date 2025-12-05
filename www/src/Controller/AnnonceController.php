@@ -428,17 +428,15 @@ class AnnonceController extends Controller
         // 2. Charger l'annonce depuis la base de données
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
         $room = $roomRepo->find($id);
+        $ownerData = $roomRepo->FindNamebyRoomId($room->id);
 
-        if (!$room) {
-            // Annonce introuvable : rediriger ou afficher une erreur 404
-            return $this->redirect('/');
-        }
 
-        $roomRepo->loadEquipments($room);
+        $ownerName = $ownerData[0] ?? null;
 
-        // 3. Rendre la vue de l'annonce
+
         return $this->view('Annonces/showRoom', [
             'room' => $room,
+            'ownerName' => $ownerName,
             'title' => $room->title . ' - Airbnb',
             'auth' => $this->auth,
         ]);
@@ -490,23 +488,6 @@ class AnnonceController extends Controller
         ]);
     }
 
-    #[Route(path: '/mes-reservations', name: 'host_reservations', methods: ['GET'], middleware: [AuthMiddleware::class])]
-    public function mesReservationsRecues(): Response
-    {
-        $user = $this->auth->user();
 
-        // Utilisation du Repository corrigé
-        /** @var ReservationRepository $reservationRepo */
-        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
-
-        // Récupération des données
-        $reservations = $reservationRepo->findReservationsByHost($user->id);
-
-        return $this->view('Annonces/mesReservations', [
-            'title' => 'Suivi des réservations',
-            'reservations' => $reservations,
-            'user' => $user
-        ]);
-    }
 
 }

@@ -26,6 +26,7 @@ require dirname(__FILE__) . '/../_templates/_navbar.html.php';
                             $number_of_bed = is_array($room) ? $room['number_of_bed'] : $room->number_of_bed;
                             $description = is_array($room) ? $room['description'] : $room->description;
                             $id = is_array($room) ? $room['id'] : $room->id;
+                            $roomType = is_array($room) ? ($room['type_of_room'] ?? 'Non spécifié') : ($room->type_of_room ?? 'Non spécifié');
                             ?>
 
                             <a href="/room/<?= htmlspecialchars($id) ?>" class="block" title="<?= htmlspecialchars($title) ?>">
@@ -53,6 +54,12 @@ require dirname(__FILE__) . '/../_templates/_navbar.html.php';
                                     <div class="flex justify-between items-start mb-1">
                                         <h3 class="font-bold text-gray-900 truncate"><?= htmlspecialchars($title) ?></h3>
                                     </div>
+
+                                    <p class="text-xs font-semibold text-blue-600 mb-2">
+                                        <?= htmlspecialchars($roomType) ?>
+                                    </p>
+
+                                    <p></p>
 
                                     <p class="text-gray-500 text-sm mb-4 line-clamp-2"><?= htmlspecialchars($city) ?>, <?= htmlspecialchars($country) ?></p>
                                 </div>

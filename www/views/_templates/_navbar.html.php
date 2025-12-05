@@ -58,19 +58,27 @@
                     $currentRole = $user->role ?? 'user';
                     ?>
 
-                    <a href="/mesReservations" class="block w-full text-left px-4 py-3 hover:bg-gray-100 transition font-medium text-sm text-gray-800">
-                        Mes réservations
-                    </a>
+                    <p class="block w-full text-left px-4 py-3 hover:bg-gray-100 transition font-medium text-sm text-gray-800">Bonjour, <span class="font-bold"><?= $user->first_name ?></span></p>
+
+                    <div class="border-t border-gray-200 my-1"></div>
 
                     <?php if ($currentRole === 'hote'): ?>
                         <a href="/mesAnnonces" class="block w-full text-left px-4 py-3 hover:bg-gray-100 transition font-medium text-sm text-gray-800">
                             Mes annonces
+                        </a>
+                        <a href="/mes-reservations" class="block w-full text-left px-4 py-3 hover:bg-gray-100 transition font-medium text-sm text-gray-800">
+                            Réservations reçues
                         </a>
                     <?php else: ?>
                         <a href="/room/create" class="block w-full text-left px-4 py-3 hover:bg-gray-100 transition font-medium text-sm text-gray-800">
                             Devenir hôte
                         </a>
                     <?php endif; ?>
+
+
+                    <a href="/mesReservations" class="block w-full text-left px-4 py-3 hover:bg-gray-100 transition font-medium text-sm text-gray-800">
+                        Mes voyages (réservations faites)
+                    </a>
 
                     <div class="border-t border-gray-200 my-1"></div>
 
