@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+
 use App\Entity\Reservation;
 use App\Entity\Room;
 use App\Entity\User;
@@ -24,7 +25,7 @@ class ReservationController extends Controller
     public function __construct(
         private AuthManager $auth,
         private EntityManager $em,
-    ) {}
+    ){}
 
     #[Route(path: "/reservation/create", name: "app_reservation_create_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function createForm(Request $request): Response

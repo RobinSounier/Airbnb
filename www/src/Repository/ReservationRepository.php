@@ -17,7 +17,11 @@ class ReservationRepository extends EntityRepository
 
     protected EntityManager $em;
 
-    // 2. On initialise via le constructeur
+    /**
+     * Initialise le Repository.
+     *
+     * @param EntityManager $em L'Entity Manager.
+     */
     public function __construct(EntityManager $em)
     {
         parent::__construct(
@@ -31,7 +35,11 @@ class ReservationRepository extends EntityRepository
 
     /**
      * Vérifie si une Room est déjà réservée pendant la période donnée.
-     * ...
+     *
+     * @param int $roomId ID du logement à vérifier.
+     * @param \DateTime $startDate Date de début de la période.
+     * @param \DateTime $endDate Date de fin de la période.
+     * @return bool True si une réservation chevauche la période.
      */
     public function isRoomReserved(int $roomId, \DateTime $startDate, \DateTime $endDate): bool
     {
@@ -56,6 +64,13 @@ class ReservationRepository extends EntityRepository
     }
 
 
+    /**
+     * Récupère les réservations reçues par l'user.
+     *
+     * @param EntityManager $em L'Entity Manager.
+     * @param User $user L'utilisateur (user) connecté.
+     * @return array Liste des réservations reçues (format tableau).
+     */
     public function findHostReservations(EntityManager $em, User $user): array
     {
         $hostId = $user->id;
@@ -77,8 +92,11 @@ class ReservationRepository extends EntityRepository
     }
 
     /**
-     * Récupère toutes les réservations reçues par un hôte pour ses biens
-     * Retourne un tableau associatif (plus simple pour l'affichage)
+     * Récupère toutes les réservations reçues par un hôte pour ses biens.
+     * Retourne un tableau associatif avec les détails nécessaires à la vue.
+     *
+     * @param int $hostId ID de l'hôte.
+     * @return array Liste des réservations reçues.
      */
     public function findReservationsByHost(int $hostId): array
     {
@@ -99,6 +117,4 @@ class ReservationRepository extends EntityRepository
 
         return $qb->getResult();
     }
-
-
 }
