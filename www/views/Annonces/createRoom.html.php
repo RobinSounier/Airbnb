@@ -102,12 +102,12 @@ $old = $old ?? [
                     <option value="bungalow" <?= ($old['type_of_room'] ?? '') === 'bungalow' ? 'selected' : '' ?>>Bungalow</option>
                     <option value="loft" <?= ($old['type_of_room'] ?? '') === 'loft' ? 'selected' : '' ?>>Loft</option>
                     <option value="duplex" <?= ($old['type_of_room'] ?? '') === 'duplex' ? 'selected' : '' ?>>Duplex</option>
-                    <option value="tiny_house" <?= ($old['type_of_room'] ?? '') === 'tiny_house' ? 'selected' : '' ?>>Tiny House</option>
-                    <option value="mobil_home" <?= ($old['type_of_room'] ?? '') === 'mobil_home' ? 'selected' : '' ?>>Mobil-home</option>
+                    <option value="tiny House" <?= ($old['type_of_room'] ?? '') === 'tiny_house' ? 'selected' : '' ?>>Tiny House</option>
+                    <option value="mobil Home" <?= ($old['type_of_room'] ?? '') === 'mobil_home' ? 'selected' : '' ?>>Mobil-home</option>
                     <option value="gite" <?= ($old['type_of_room'] ?? '') === 'gite' ? 'selected' : '' ?>>Gîte</option>
-                    <option value="maison_hotes" <?= ($old['type_of_room'] ?? '') === 'maison_hotes' ? 'selected' : '' ?>>Maison d’hôtes</option>
-                    <option value="chambre_privee" <?= ($old['type_of_room'] ?? '') === 'chambre_privee' ? 'selected' : '' ?>>Chambre privée</option>
-                    <option value="chambre_partagee" <?= ($old['type_of_room'] ?? '') === 'chambre_partagee' ? 'selected' : '' ?>>Chambre partagée</option>
+                    <option value="maison Hotes" <?= ($old['type_of_room'] ?? '') === 'maison_hotes' ? 'selected' : '' ?>>Maison d’hôtes</option>
+                    <option value="chambre Privee" <?= ($old['type_of_room'] ?? '') === 'chambre_privee' ? 'selected' : '' ?>>Chambre privée</option>
+                    <option value="chambre Partagée" <?= ($old['type_of_room'] ?? '') === 'chambre_partagee' ? 'selected' : '' ?>>Chambre partagée</option>
                     <option value="penthouse" <?= ($old['type_of_room'] ?? '') === 'penthouse' ? 'selected' : '' ?>>Penthouse</option>
                 </select>
 

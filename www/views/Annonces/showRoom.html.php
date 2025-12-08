@@ -47,7 +47,7 @@ require dirname(__FILE__) . '/../_templates/_navbar.html.php';
                 <div class="p-5 bg-gray-50 rounded-xl border border-gray-200">
                     <p class="text-gray-500 text-sm">Type</p>
                     <p class="font-semibold text-gray-900 text-lg">
-                        <?= htmlspecialchars($room->type ?? 'Logement') ?>
+                        <?= htmlspecialchars($room->type_of_room ?? 'Logement') ?>
                     </p>
                 </div>
 
