@@ -77,12 +77,10 @@ class ReservationController extends Controller
             $errors['general'] = 'Bien introuvable.';
         }
 
-        // Validation des dates
+
         try {
             $startDate = new \DateTime($startDateStr);
             $endDate = new \DateTime($endDateStr);
-
-
 
             $now = new \DateTime('today');
 
@@ -104,6 +102,7 @@ class ReservationController extends Controller
             var_dump($e->getMessage());
             $errors['date'] = 'Format de date invalide.';
         }
+
         // S'il y a des erreurs, on réaffiche le formulaire
         if (!empty($errors)) {
             Session::flash('error', $errors['general'] ?? '');
@@ -127,7 +126,6 @@ class ReservationController extends Controller
             $reservation->created_at = new \DateTime();
             $reservation->guest = $guestEntity;
             $reservation->room = $room;
-
             $this->em->persist($reservation);
             $this->em->flush();
 
@@ -158,23 +156,21 @@ class ReservationController extends Controller
     {
         $user = $this->auth->user();
 
-        // VÉRIFICATION DE SÉCURITÉ : N'autoriser que les hôtes à voir cette page
         if (($user->role ?? 'user') !== 'hote') {
             Session::flash('error', 'Accès refusé. Cette page est réservée aux hôtes.');
             return $this->redirect('/');
         }
 
-        // 1. Récupérer le Repository
-        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
 
-        // 2. Récupérer toutes les réservations des biens de l'hôte
+        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
         $reservations = $reservationRepo->findHostReservations($this->em, $user);
+
 
 
         return $this->view('Reservation/mesReservation', [
             'title' => 'Réservations de mes biens',
             'reservations' => $reservations,
-            'auth' => $this->auth // Pour la navbar
+            'auth' => $this->auth
         ]);
     }
 
@@ -184,11 +180,9 @@ class ReservationController extends Controller
         $user = $this->auth->user();
 
         $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
-
-        // Récupération des données
         $reservations = $reservationRepo->findReservationsByHost($user->id);
 
-        return $this->view('Annonces/mesReservations', [
+        return $this->view('Annonces/mesVoyages', [
             'title' => 'Suivi des réservations',
             'reservations' => $reservations,
             'user' => $user

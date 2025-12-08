@@ -75,17 +75,13 @@ class ReservationRepository extends EntityRepository
     {
         $hostId = $user->id;
 
-        // On utilise les jointures pour relier la Réservation à la Chambre,
-        // puis la Chambre à son Propriétaire (l'Hôte) via la table user_rooms.
         $qb = $em->createQueryBuilder()
             ->select('*')
             ->from(Reservation::class, 'r')
-            ->join(Room::class, 'rm', 'r.room_id = rm.id')
-            ->join(User_Room::class, 'ur', 'r.room_id = ur.room_id')
-            ->join(User::class, 'u', 'r.guest_id = u.id')
-            ->where('ur.user_id = :hostId')
-            ->setParameter('hostId', $hostId)
-            ->orderBy('r.start_date', 'DESC');
+            ->join(Room::class, 'ro', 'r.room_id = ro.id')
+            ->where('r.guest_id = :host_id')
+            ->setParameter('host_id', $hostId)
+            ->orderBy('r.start_date', 'ASC');
 
         return $qb->getResult();
 
@@ -98,7 +94,7 @@ class ReservationRepository extends EntityRepository
      * @param int $hostId ID de l'hôte.
      * @return array Liste des réservations reçues.
      */
-    public function findReservationsByHost(int $hostId): array
+    public function findReservationsByHost(User $hostId): array
     {
         $qb = $this->em->createQueryBuilder();
 
@@ -110,10 +106,10 @@ class ReservationRepository extends EntityRepository
             ->from(Reservation::class, 'r')
             ->join(Room::class, 'rm', 'r.room_id = rm.id')
             ->join(User_Room::class, 'ur', 'rm.id = ur.room_id')
-            ->join(User::class, 'u', 'u.id = ur.user_id')
+            ->join(User::class, 'u', 'u.id = r.guest_id')
             ->where('ur.user_id = :hostId')
             ->setParameter('hostId', $hostId)
-            ->orderBy('r.start_date', 'DESC');
+            ->orderBy('r.start_date', 'ASC');
 
         return $qb->getResult();
     }

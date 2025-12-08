@@ -1,5 +1,4 @@
 <?php
-// --- Page de gestion des réservations (NOUVEAU STYLE ULTRA MODERNE) ---
 $reservations = $reservations ?? [];
 ?>
 

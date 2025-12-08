@@ -99,12 +99,12 @@ class AnnonceController extends Controller
             'bungalow',
             'loft',
             'duplex',
-            'tiny_house',
-            'mobil_home',
+            'tiny House',
+            'mobil Home',
             'gite',
-            'maison_hotes',
-            'chambre_privee',
-            'chambre_partagee',
+            'maison Hotes',
+            'chambre Privee',
+            'chambre Partagée',
             'penthouse'
         ];
         if (!in_array($type_of_room, $allowedTypes)) {
@@ -113,7 +113,6 @@ class AnnonceController extends Controller
 
         $imagePath = null;
 
-        // 3. Gestion de l'image
         if (isset($_FILES['media']) && $_FILES['media']['error'] !== UPLOAD_ERR_NO_FILE) {
             $uploadResult = $this->fileUploadService->upload($_FILES['media']);
 
@@ -153,23 +152,19 @@ class AnnonceController extends Controller
             $room->type_of_room = $type_of_room;
             $room->created_at = new \DateTime();
             $room->updated_at = new \DateTime();
-            $room->is_reserved = false;
             $room->media_path = $imagePath;
             $room->equipments = [];
 
 
             $this->em->persist($room);
-            $this->em->flush(); // FLUSH 1 : Indispensable pour avoir l'ID
+            $this->em->flush();
 
-            // GESTION DES ÉQUIPEMENTS (Correction pour votre ORM)
             $selectedEquipments = $request->getPost('equipments', []);
 
             if (is_array($selectedEquipments)) {
-                // On récupère la connexion directe
                 $conn = $this->em->getConnection();
 
-                // A. NETTOYAGE : Suppression directe via execute()
-                // Note: Pas de prepare(), on passe les paramètres directement
+
                 $conn->execute(
                     "DELETE FROM room_equipments WHERE room_id = :room_id",
                     ['room_id' => $room->id]
@@ -205,13 +200,9 @@ class AnnonceController extends Controller
             if ($userEntity->role !== 'hote') {
                 $userEntity->role = 'hote';
                 $userEntity->updated_at = new \DateTime();
-                // $this->em->persist($userEntity); // Déjà persisté plus haut
             }
-
-            // 7. FLUSH FINAL (Enregistre User_Room et l'UPDATE User)
             $this->em->flush();
 
-            // 8. Mise à jour de la session pour refléter le nouveau rôle immédiatement
             if (method_exists($this->auth, 'login')) {
                 $this->auth->login($userEntity);
             }
@@ -438,7 +429,6 @@ class AnnonceController extends Controller
         $roomRepo->loadEquipments($room); // Cette ligne charge la relation Many-to-Many manquante
 
         $ownerData = $roomRepo->FindNamebyRoomId($room->id);
-
 
         $ownerName = $ownerData[0] ?? null;
 
