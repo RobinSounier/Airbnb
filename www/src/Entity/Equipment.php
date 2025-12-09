@@ -18,5 +18,5 @@ class Equipment
     public string $name;
 
     #[Column(type: 'string', length: 50, nullable: true)]
-    public ?string $icon;
+    public ?string $icon = null;
 }

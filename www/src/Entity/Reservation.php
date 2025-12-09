@@ -26,10 +26,10 @@ class Reservation
     public ?Room $room = null;
 
     #[Column(type: 'datetime')]
-    public \DateTime $start_date;
+    public DateTime $start_date;
 
     #[Column(type: 'datetime')]
-    public \DateTime $end_date;
+    public DateTime $end_date;
 
     #[Column(type: 'varchar', length: 255)]
     public string $comment;

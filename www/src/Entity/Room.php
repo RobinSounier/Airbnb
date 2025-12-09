@@ -42,13 +42,10 @@ class Room
     public string $type_of_room;
 
     #[Column(type: 'datetime', nullable: true, default: 'CURRENT_TIMESTAMP')]
-    public ?\DateTime $created_at = null;
+    public ?DateTime $created_at = null;
 
     #[Column(type: 'datetime', nullable: true, default: 'CURRENT_TIMESTAMP')]
-    public ?\DateTime $updated_at = null;
-
-    #[Column(type: 'bool', nullable: false, default: 'false')]
-    public bool $is_reserved = false;
+    public ?DateTime $updated_at = null;
     
     #[OneToMany(targetEntity: User_Room::class, mappedBy: 'room', cascade: ['persist', 'remove'])]
     public array $userRooms = [];
@@ -60,6 +57,5 @@ class Room
     public array $reservations = [];
 
     #[ManyToMany(targetEntity: Equipment::class ,joinTable: 'room_equipment', cascade: ['persist', 'remove'])]
-
     public array $equipments = [];
 }

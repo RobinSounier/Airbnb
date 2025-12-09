@@ -1,9 +1,6 @@
 <?php
-
 declare(strict_types=1);
-
 namespace App\Controller;
-
 
 use App\Entity\Reservation;
 use App\Entity\Room;
@@ -13,6 +10,7 @@ use App\Repository\RoomRepository;
 use App\Repository\UserRepository;
 use JulienLinard\Auth\AuthManager;
 use JulienLinard\Auth\Middleware\AuthMiddleware;
+use JulienLinard\Auth\Middleware\RoleMiddleware;
 use JulienLinard\Core\Controller\Controller;
 use JulienLinard\Core\Session\Session;
 use JulienLinard\Doctrine\EntityManager;
@@ -151,7 +149,7 @@ class ReservationController extends Controller
         ]);
     }
 
-    #[Route(path: "/mesReservations", name: "app_host_reservations", methods: ["GET"], middleware: [AuthMiddleware::class])]
+    #[Route(path: "/mesReservations", name: "app_host_reservations", methods: ["GET"], middleware: [AuthMiddleware::class, new RoleMiddleware('hote', '/')])]
     public function hostReservations(): Response
     {
         $user = $this->auth->user();
@@ -161,11 +159,8 @@ class ReservationController extends Controller
             return $this->redirect('/');
         }
 
-
         $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
         $reservations = $reservationRepo->findHostReservations($this->em, $user);
-
-
 
         return $this->view('Reservation/mesReservation', [
             'title' => 'Réservations de mes biens',
@@ -174,7 +169,7 @@ class ReservationController extends Controller
         ]);
     }
 
-    #[Route(path: '/mes-reservations', name: 'host_reservations', methods: ['GET'], middleware: [AuthMiddleware::class])]
+    #[Route(path: '/mes-reservations', name: 'host_reservations', methods: ['GET'], middleware: [AuthMiddleware::class, new RoleMiddleware('hote', '/')])]
     public function mesReservationsRecues(): Response
     {
         $user = $this->auth->user();
@@ -182,11 +177,39 @@ class ReservationController extends Controller
         $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
         $reservations = $reservationRepo->findReservationsByHost($user->id);
 
+
         return $this->view('Annonces/mesVoyages', [
             'title' => 'Suivi des réservations',
             'reservations' => $reservations,
             'user' => $user
         ]);
+    }
+
+    #[Route(path: "/reservation/{id}/delete", name: "app_reservation_delete", methods: ["POST"], middleware: [AuthMiddleware::class])]
+    public function reservationDelete(Request $request):Response
+    {
+        $user = $this->auth->user();
+        $reservationId = (int) $request->getPost('id', 0);
+
+        $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
+        $reservations = $reservationRepo->find(id: $reservationId);
+
+        if (!$reservations) {
+            Session::flash('error', 'Réservation introuvable.');
+            return $this->redirect('/mesReservations');
+        }
+
+
+
+        try {
+            $this->em->remove($reservations);
+            $this->em->flush();
+            Session::flash('success', 'Réservation supprimée avec succès !');
+            return $this->redirect('/mesReservations');
+        } catch (\Exception $e) {
+            Session::flash('error', 'Une erreur est survenue lors de la suppression de la réservation');
+            return $this->redirect('/mesReservations');
+        }
     }
 
 }

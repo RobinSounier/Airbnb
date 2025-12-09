@@ -9,17 +9,15 @@ use App\Entity\Room;
 use App\Entity\User;
 use App\Entity\User_Room;
 use App\Repository\EquipmentRepository;
-use App\Repository\ReservationRepository;
 use App\Repository\RoomRepository;
 use App\Repository\UserRepository;
-use App\Repository\User_RoomRepository; // Import nécessaire
+use App\Repository\User_RoomRepository;
 use App\Service\FileUploadService;
 use JulienLinard\Auth\AuthManager;
 use JulienLinard\Auth\Middleware\AuthMiddleware;
 use JulienLinard\Core\Controller\Controller;
 use JulienLinard\Core\Session\Session;
 use JulienLinard\Doctrine\EntityManager;
-use JulienLinard\Doctrine\Repository\EntityRepository;
 use JulienLinard\Router\Attributes\Route;
 use JulienLinard\Router\Request;
 use JulienLinard\Router\Response;
@@ -141,7 +139,6 @@ class AnnonceController extends Controller
         }
 
         try {
-            // 4. Création de la Room
             $room = new Room();
             $room->title = $title;
             $room->description = $description;
@@ -155,7 +152,6 @@ class AnnonceController extends Controller
             $room->media_path = $imagePath;
             $room->equipments = [];
 
-
             $this->em->persist($room);
             $this->em->flush();
 
@@ -163,20 +159,14 @@ class AnnonceController extends Controller
 
             if (is_array($selectedEquipments)) {
                 $conn = $this->em->getConnection();
-
-
                 $conn->execute(
                     "DELETE FROM room_equipments WHERE room_id = :room_id",
                     ['room_id' => $room->id]
                 );
 
-                // B. INSERTION
                 if (!empty($selectedEquipments)) {
-                    // On définit la requête SQL en chaîne de caractères
                     $sqlInsert = "INSERT INTO room_equipments (room_id, equipment_id) VALUES (:room_id, :equip_id)";
-
                     foreach ($selectedEquipments as $equipId) {
-                        // On exécute la requête pour CHAQUE équipement
                         $conn->execute($sqlInsert, [
                             'room_id'  => $room->id,
                             'equip_id' => (int)$equipId
@@ -185,9 +175,8 @@ class AnnonceController extends Controller
                 }
             }
 
-            // 5. Création de la liaison User_Room
+
             $userEntity = $this->em->createRepository(UserRepository::class, User::class)->find($user->id);
-            // On s'assure que l'entité User est suivie
             $this->em->persist($userEntity);
 
             $userRoom = new User_Room();
@@ -195,8 +184,6 @@ class AnnonceController extends Controller
             $userRoom->room = $room;
             $this->em->persist($userRoom);
 
-            // 6. Changement de rôle (Si pas déjà Hôte)
-            // Utilisation de la propriété string 'role'
             if ($userEntity->role !== 'hote') {
                 $userEntity->role = 'hote';
                 $userEntity->updated_at = new \DateTime();
@@ -219,7 +206,6 @@ class AnnonceController extends Controller
     #[Route(path: "/room/edit", name: "app_edit_room_form", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function editForm(Request $request): Response
     {
-        // CORRECTION ICI : Utilisation de EquipmentRepository
         $equipmentRepo = $this->em->createRepository(EquipmentRepository::class, Equipment::class);
         $allEquipments = $equipmentRepo->findAll();
 
@@ -235,9 +221,8 @@ class AnnonceController extends Controller
             return $this->redirect('/mesAnnonces');
         }
 
-        // 1. Charger l'annonce
+
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
-        /** @var Room|null $room */
         $room = $roomRepo->find($id);
 
         if (!$room) {
@@ -245,13 +230,8 @@ class AnnonceController extends Controller
             return $this->redirect('/mesAnnonces');
         }
 
-        // IMPORTANT : Chargez les équipements existants de la chambre pour pré-cocher les cases !
-        // (Sinon les cases seront vides même si la chambre a des équipements)
         $roomRepo->loadEquipments($room);
 
-        // --- VÉRIFICATION DE SÉCURITÉ ---
-        // Attention : Vérifiez bien le nom de votre repository UserRoom (souvent App\Repository\UserRoom)
-        // Si votre fichier est UserRoom.php, la classe est probablement UserRoom et non User_RoomRepository
         $userRoomRepo = $this->em->createRepository(User_RoomRepository::class, User_Room::class);
 
         $isOwner = $userRoomRepo->findOneBy([
@@ -264,7 +244,6 @@ class AnnonceController extends Controller
             return $this->redirect('/mesAnnonces');
         }
 
-        // 2. Rendre la vue
         return $this->view('Annonces/editRoom', [
             'room' => $room,
             'errors' => [],
@@ -291,7 +270,6 @@ class AnnonceController extends Controller
             return $this->redirect('/mesAnnonces');
         }
 
-        // --- VÉRIFICATION DE SÉCURITÉ (POST) ---
         $userRoomRepo = $this->em->createRepository(User_RoomRepository::class, User_Room::class);
         $isOwner = $userRoomRepo->findOneBy([
             'room_id' => $room->id,
@@ -302,7 +280,6 @@ class AnnonceController extends Controller
             Session::flash('error', 'Vous n’êtes pas autorisé à modifier cette annonce.');
             return $this->redirect('/mesAnnonces');
         }
-        // -----------------------------------
 
         $title = trim($request->getPost('title', '') ?? '');
         $description = trim($request->getPost('description', '') ?? '');
@@ -318,7 +295,6 @@ class AnnonceController extends Controller
         }
 
         try {
-            // 1. Mise à jour des propriétés sur l'objet
             $room->title = $title;
             $room->description = $description;
             $room->country = $country;
@@ -328,7 +304,6 @@ class AnnonceController extends Controller
             $room->number_of_bed = $number_of_bed;
             $room->updated_at = new \DateTime();
 
-            // 2. GESTION DE L'IMAGE
             if (isset($_FILES['media']) && $_FILES['media']['error'] !== UPLOAD_ERR_NO_FILE) {
                 $uploadResult = $this->fileUploadService->upload($_FILES['media']);
 
@@ -344,7 +319,6 @@ class AnnonceController extends Controller
                 }
             }
 
-            // 3. CONTOURNEMENT DE L'ORM AVEC SQL DIRECT (pour assurer l'UPDATE)
             $connection = $this->em->getConnection();
 
             $sql = "UPDATE rooms SET
@@ -374,16 +348,13 @@ class AnnonceController extends Controller
 
             $connection->execute($sql, $params);
 
-            // --- AJOUTER CE BLOC POUR SAUVEGARDER LES ÉQUIPEMENTS ---
             $selectedEquipments = $request->getPost('equipments', []);
 
-            // 1. Nettoyage : On supprime les anciens équipements de cette chambre
             $connection->execute(
                 "DELETE FROM room_equipments WHERE room_id = :room_id",
                 ['room_id' => $room->id]
             );
 
-            // 2. Insertion des nouveaux
             if (!empty($selectedEquipments) && is_array($selectedEquipments)) {
                 $sqlInsert = "INSERT INTO room_equipments (room_id, equipment_id) VALUES (:room_id, :equip_id)";
 
@@ -394,7 +365,6 @@ class AnnonceController extends Controller
                     ]);
                 }
             }
-            // ---------------------------------------------------------
 
             Session::flash('success', 'Annonce modifiée avec succès !');
             return $this->redirect('/mesAnnonces');
@@ -408,25 +378,22 @@ class AnnonceController extends Controller
     #[Route(path: "/room/{id}", name: "app_room_show", methods: ["GET"])]
     public function show(Request $request): Response
     {
-        // 1. Récupérer l'ID de la Room depuis l'URL (le chemin)
+
         $id = (int) $request->getRouteParam('id', 0);
 
         if ($id === 0) {
-            // Optionnel : rediriger ou afficher une erreur si l'ID est invalide
             return $this->redirect('/');
         }
 
-        // 2. Charger l'annonce depuis la base de données
         $roomRepo = $this->em->createRepository(RoomRepository::class, Room::class);
         $room = $roomRepo->find($id); // Charge l'objet Room
         $hostName = $roomRepo-> FindNamebyRoomId($room->id);
 
-        // AJOUT DE LA CORRECTION : Chargement manuel des équipements
+
         if (!$room) {
-            // Rediriger ou afficher une erreur si l'annonce n'existe pas
             return $this->redirect('/');
         }
-        $roomRepo->loadEquipments($room); // Cette ligne charge la relation Many-to-Many manquante
+        $roomRepo->loadEquipments($room);
 
         $ownerData = $roomRepo->FindNamebyRoomId($room->id);
 
@@ -488,6 +455,5 @@ class AnnonceController extends Controller
         ]);
     }
 
-
-
+    
 }

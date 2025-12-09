@@ -1,7 +1,5 @@
 <?php
-// Assurez-vous d'inclure les templates nécessaires
 require dirname(__FILE__) . '/../_templates/_navbar.html.php';
-require dirname(__FILE__) . '/../_templates/_header.html.php';
 ?>
 
     <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -24,7 +22,6 @@ require dirname(__FILE__) . '/../_templates/_header.html.php';
                 <div class="space-y-6">
                     <?php foreach ($reservations as $reservation): ?>
                         <?php
-                        // --- Logique de calcul ---
                         $startDate = new \DateTime($reservation['start_date']);
                         $endDate = new \DateTime($reservation['end_date']);
                         $days = $startDate->diff($endDate)->days;
@@ -80,6 +77,14 @@ require dirname(__FILE__) . '/../_templates/_header.html.php';
                                     <?php else: ?>
                                         <span class="text-sm text-gray-500">Séjour terminé</span>
                                     <?php endif; ?>
+                                    <div>
+                                        <form action="/reservation/<?= htmlspecialchars($reservationId) ?>/delete" method="POST">
+                                            <?= \JulienLinard\Core\Middleware\CsrfMiddleware::field() ?>
+                                            <input type="hidden" name="id" value="<?= htmlspecialchars($reservationId) ?>">
+
+                                            <button type="submit" class="text-red-500">supprimer</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
