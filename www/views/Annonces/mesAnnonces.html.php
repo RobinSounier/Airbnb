@@ -1,3 +1,4 @@
+
 <div class="min-h-screen p-6">
     <div class="max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-6">

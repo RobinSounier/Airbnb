@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\ReservationRepository;
 use App\Repository\RoomRepository;
 use App\Repository\UserRepository;
+use Couchbase\Role;
 use JulienLinard\Auth\AuthManager;
 use JulienLinard\Auth\Middleware\AuthMiddleware;
 use JulienLinard\Auth\Middleware\RoleMiddleware;
@@ -149,15 +150,12 @@ class ReservationController extends Controller
         ]);
     }
 
-    #[Route(path: "/mesReservations", name: "app_host_reservations", methods: ["GET"], middleware: [AuthMiddleware::class, new RoleMiddleware('hote', '/')])]
+    #[Route(path: "/mesReservations", name: "app_host_reservations", methods: ["GET"], middleware: [AuthMiddleware::class])]
     public function hostReservations(): Response
     {
         $user = $this->auth->user();
 
-        if (($user->role ?? 'user') !== 'hote') {
-            Session::flash('error', 'Accès refusé. Cette page est réservée aux hôtes.');
-            return $this->redirect('/');
-        }
+
 
         $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
         $reservations = $reservationRepo->findHostReservations($this->em, $user);
@@ -176,6 +174,11 @@ class ReservationController extends Controller
 
         $reservationRepo = $this->em->createRepository(ReservationRepository::class, Reservation::class);
         $reservations = $reservationRepo->findReservationsByHost($user->id);
+
+        if (($user->role ?? 'user') !== 'hote') {
+            Session::flash('error', 'Accès refusé. Cette page est réservée aux hôtes.');
+            return $this->redirect('/');
+        }
 
 
         return $this->view('Annonces/mesVoyages', [
@@ -198,7 +201,6 @@ class ReservationController extends Controller
             Session::flash('error', 'Réservation introuvable.');
             return $this->redirect('/mesReservations');
         }
-
 
 
         try {
