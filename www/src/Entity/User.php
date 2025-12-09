@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Entity\Role;
+
+use DateTime;
 use JulienLinard\Doctrine\Mapping\Entity;
 use JulienLinard\Doctrine\Mapping\Column;
 use JulienLinard\Doctrine\Mapping\Id;
 use JulienLinard\Doctrine\Mapping\Index;
 use JulienLinard\Auth\Models\UserInterface;
 use JulienLinard\Auth\Models\Authenticatable;
-use JulienLinard\Doctrine\Mapping\ManyToOne;
 use JulienLinard\Doctrine\Mapping\OneToMany;
 
 #[Entity(table: 'users')]
@@ -30,17 +30,17 @@ class User implements UserInterface
     #[Column(type: 'string', length: 255)]
     public string $password;
 
-    #[Column(type: 'string', length: 100, nullable: true)]
-    public ?string $first_name = null;
+    #[Column(type: 'string', length: 100, nullable: false)]
+    public string $first_name;
 
-    #[Column(type: 'string', length: 100, nullable: true)]
-    public ?string $last_name = null;
+    #[Column(type: 'string', length: 100, nullable: false)]
+    public string $last_name;
+
+    #[Column(type: 'datetime', nullable: false)]
+    public DateTime $created_at;
 
     #[Column(type: 'datetime', nullable: true)]
-    public ?\DateTime $created_at = null;
-
-    #[Column(type: 'datetime', nullable: true)]
-    public ?\DateTime $updated_at = null;
+    public ?DateTime $updated_at = null;
 
     #[Column(type: 'string', length: 50, nullable: false, default: 'user')]
     public string $role = 'user';
@@ -56,13 +56,11 @@ class User implements UserInterface
 
     public function getAuthRoles(): array|string
     {
-        // Utilise directement la propriété $role
         return $this->role;
     }
 
     public function getAuthPermissions(): array
     {
-        // Utilise directement la propriété $role pour déterminer les permissions
         return match ($this->role) {
             'hote' => ['edit-posts', 'delete-posts', 'create-posts'],
             'user' => ['view-posts'],
